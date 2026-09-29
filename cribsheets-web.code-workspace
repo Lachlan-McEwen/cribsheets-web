@@ -1,0 +1,20 @@
+{
+  "folders": [
+    {
+      "name": "cribsheets-web",
+      "path": "."
+    },
+    {
+      "name": "CribSheets (legacy)",
+      "path": "legacy/CribSheets"
+    }
+  ],
+  "settings": {
+    "dotnet.defaultProject": "legacy/CribSheets/CribSheets/CribSheets.csproj",
+    "files.exclude": {
+      "**/bin": true,
+      "**/obj": true,
+      "**/node_modules": true
+    }
+  }
+}
