@@ -1,0 +1,38 @@
+{
+  "fortnightEnding": "2026-09-27",
+  "user": {
+    "name": "Cassie Glynn",
+    "employeeNumber": "1026",
+    "unitStation": "SOUTH A",
+    "casual": false,
+    "isCountryEmployee": false
+  },
+  "days": [
+    {
+      "date": "2026-09-14",
+      "start": "2026-09-14T19:00:00",
+      "end": "2026-09-15T07:45:00",
+      "rosteredHours": 12,
+      "rosteredMinutes": 0,
+      "overtimeHours": 0,
+      "overtimeMinutes": 45,
+      "shiftCode": "Emergency",
+      "additionalInformation": "Shift change AL192 > M192 \r\n\r\n#146",
+      "firstCribPenalty": { "started": "01:20" },
+      "secondCribPenalty": { "noCrib": true }
+    },
+    { "date": "2026-09-15", "shiftCode": "Emergency" },
+    { "date": "2026-09-16", "shiftCode": "Emergency" },
+    { "date": "2026-09-17", "shiftCode": "Emergency" },
+    { "date": "2026-09-18", "shiftCode": "Emergency" },
+    { "date": "2026-09-19", "shiftCode": "Emergency" },
+    { "date": "2026-09-20", "shiftCode": "Emergency" },
+    { "date": "2026-09-21", "shiftCode": "Emergency" },
+    { "date": "2026-09-22", "shiftCode": "Emergency" },
+    { "date": "2026-09-23", "shiftCode": "Emergency" },
+    { "date": "2026-09-24", "shiftCode": "Emergency" },
+    { "date": "2026-09-25", "shiftCode": "Emergency" },
+    { "date": "2026-09-26", "shiftCode": "Emergency" },
+    { "date": "2026-09-27", "shiftCode": "Emergency" }
+  ]
+}

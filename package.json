@@ -4,21 +4,39 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "vite",
+    "dev": "concurrently -n api,ui -c magenta,cyan \"npm run dev --prefix api\" \"vite\"",
+    "dev:ui": "vite",
     "build": "tsc -b && vite build",
+    "start": "npm run start --prefix api",
+    "seed:admin": "npm run seed:admin --prefix api",
+    "seed:admin:railway": "railway ssh -- npm run seed:admin --prefix api",
     "lint": "oxlint",
     "preview": "vite preview",
-    "setup:legacy": "powershell -ExecutionPolicy Bypass -File ./scripts/setup-legacy.ps1"
+    "setup:legacy": "powershell -ExecutionPolicy Bypass -File ./scripts/setup-legacy.ps1",
+    "excel:spike": "bun scripts/excel-spike/run-spike.ts",
+    "excel:inspect": "bun scripts/excel-spike/inspect-preservation.ts",
+    "excel:signature": "bun scripts/excel-spike/test-signature.ts",
+    "excel:signature-node": "bun scripts/excel-spike/test-signature-node.ts",
+    "excel:parity": "bun test lib/timesheet-export/parity.test.ts",
+    "excel:test": "bun test lib/timesheet-export/"
   },
   "dependencies": {
+    "@sheetkit/node": "^0.5.1",
+    "exceljs": "^4.4.0",
     "react": "^19.2.8",
-    "react-dom": "^19.2.8"
+    "react-dom": "^19.2.8",
+    "react-router-dom": "^7.18.4",
+    "xlsx": "https://cdn.sheetjs.com/xlsx-0.20.3/xlsx-0.20.3.tgz",
+    "xlsx-populate": "^1.21.0"
   },
   "devDependencies": {
+    "@types/adm-zip": "^0.5.8",
     "@types/node": "^24.13.3",
     "@types/react": "^19.2.18",
     "@types/react-dom": "^19.2.7",
     "@vitejs/plugin-react": "^6.1.1",
+    "adm-zip": "^0.6.1",
+    "concurrently": "^9.1.2",
     "oxlint": "^1.81.0",
     "typescript": "~6.0.2",
     "vite": "^8.3.0"

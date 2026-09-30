@@ -13,6 +13,8 @@ lerna-debug.log*
 node_modules
 dist
 dist-ssr
+scripts/excel-spike/output/
+api/data/
 *.local
 
 # Secrets (match aspnet repo)

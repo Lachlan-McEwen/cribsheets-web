@@ -14,6 +14,8 @@ The .NET source lives beside this repo at `../CribSheets`. A local **junction** 
 ```powershell
 bun run setup:legacy   # one-time: legacy\CribSheets → ..\CribSheets
 bun install
+cd api && npm install && cd ..
+copy api\.env.example api\.env   # set ADMIN_* and optional DEV_USER_*
 ```
 
 Each machine needs `setup:legacy` once (or run `scripts/setup-legacy.ps1` manually).
@@ -22,8 +24,13 @@ Each machine needs `setup:legacy` once (or run `scripts/setup-legacy.ps1` manual
 
 ```powershell
 bun dev
+```
 
-# Optional: legacy API/UI in another terminal
+Runs the Node API (port 3849, SQLite + session cookie) and Vite (proxies `/api`). Log in with `ADMIN_EMAIL` / `ADMIN_PASSWORD` from `api/.env`.
+
+Optional legacy ASP.NET UI:
+
+```powershell
 dotnet run --project legacy/CribSheets/CribSheets/CribSheets.csproj
 ```
 
@@ -31,7 +38,49 @@ dotnet run --project legacy/CribSheets/CribSheets/CribSheets.csproj
 
 | Path | Purpose |
 |------|---------|
-| `src/` | React app |
+| `src/` | React app (auth + timesheet UI) |
+| `api/` | Node API — SQLite users/sessions (Mannum Island pattern) |
 | `legacy/CribSheets/` | Junction to `../CribSheets` — not in git |
 
 Original app: [lockstock123/CribSheets](https://github.com/lockstock123/CribSheets)
+
+**Export / Excel parity:** [docs/legacy-export-spec.md](docs/legacy-export-spec.md)
+
+## Railway
+
+One service serves the built React UI and `/api` (same as `npm start` locally). SQLite lives on a **volume** at `/data`.
+
+1. Create/link a project (or push this repo and connect GitHub in the Railway dashboard).
+2. Add a volume mounted at **`/data`** on the service.
+3. Set variables (at minimum):
+
+   | Variable | Example |
+   |----------|---------|
+   | `NODE_ENV` | `production` |
+   | `DATA_DIR` | `/data` |
+   | `ADMIN_EMAIL` | your admin login email |
+   | `ADMIN_PASSWORD` | strong password (bootstrap on first boot) |
+   | `ADMIN_NAME` | optional display name |
+   | `ADMIN_EMPLOYEE_NUMBER` | optional |
+   | `ADMIN_UNIT_STATION` | optional |
+
+   Railway sets **`PORT`** automatically. Do not set `CLIENT_ORIGIN` unless the UI is on a different host.
+
+4. Deploy: connect the repo (Dockerfile build) or from this directory:
+
+   ```powershell
+   railway link    # or railway init --name cribsheets-web
+   railway up
+   ```
+
+Health check: `GET /api/health` (expects `{ "ok": true, "staticUi": true }`).
+
+**Seed / fix admin** (uses `ADMIN_*` variables against the service volume DB):
+
+```powershell
+railway variable set ADMIN_EMAIL=you@example.com ADMIN_PASSWORD='your-password'
+bun run seed:admin:railway
+# or: railway ssh -- npm run seed:admin --prefix api
+```
+
+Creates the admin if missing; if the email already exists, promotes them to admin. Redeploy also runs the same bootstrap on startup.
