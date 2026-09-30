@@ -43,4 +43,6 @@ export {
   repoRoot,
   templatePath,
 } from './templates.ts'
+export { getTemplateVersion } from './template-version.ts'
+export { timesheetExcelFileName } from './excel-file-name.ts'
 export type { GenerateTimesheetOptions } from './types.ts'

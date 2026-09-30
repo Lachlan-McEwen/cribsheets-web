@@ -6,16 +6,30 @@ import {
   createSession,
   deleteSession,
   findUserByEmail,
+  getDb,
   userForSession,
   verifyPassword,
 } from './db.js'
+import { setLoggingAvailable, setMigrationResults } from './errorLog.js'
+import { emailConfigStatus } from './email.js'
 import { loadEnvFiles } from './env.js'
+import { logRequestError, tryHandleApi } from './handlers.js'
+import { json } from './httpUtil.js'
 import { registrationAllowed, registerUser, validateRegisterInput } from './register.js'
 import { hasStaticUi, trySendStatic } from './static.js'
+import { toApiUser } from './userApi.js'
 
 loadEnvFiles()
 ensureBootstrapAdmin()
 ensureBootstrapDevUser()
+
+getDb()
+setLoggingAvailable(true)
+setMigrationResults([
+  { migrationId: 'users', status: 'Ready', message: 'Users and sessions tables available.', exception: null },
+  { migrationId: 'timesheets', status: 'Ready', message: 'Timesheet storage available.', exception: null },
+  { migrationId: 'app_error_logs', status: 'Ready', message: 'Application error log available.', exception: null },
+])
 
 const PORT = Number(process.env.PORT) || 3849
 const CLIENT_ORIGIN = process.env.CLIENT_ORIGIN?.trim()
@@ -24,7 +38,7 @@ function applyCors(req: http.IncomingMessage, res: http.ServerResponse): boolean
   if (!CLIENT_ORIGIN) return false
   res.setHeader('Access-Control-Allow-Origin', CLIENT_ORIGIN)
   res.setHeader('Access-Control-Allow-Credentials', 'true')
-  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, OPTIONS')
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS')
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type')
   if (req.method === 'OPTIONS') {
     res.writeHead(204)
@@ -32,20 +46,6 @@ function applyCors(req: http.IncomingMessage, res: http.ServerResponse): boolean
     return true
   }
   return false
-}
-
-function json(
-  res: http.ServerResponse,
-  status: number,
-  body: unknown,
-  extraHeaders?: Record<string, string>,
-): void {
-  const headers: Record<string, string> = {
-    'Content-Type': 'application/json; charset=utf-8',
-    ...extraHeaders,
-  }
-  res.writeHead(status, headers)
-  res.end(JSON.stringify(body))
 }
 
 async function readJson<T>(req: http.IncomingMessage): Promise<T> {
@@ -67,20 +67,21 @@ const server = http.createServer(async (req, res) => {
 
   const url = new URL(req.url ?? '/', `http://${req.headers.host ?? 'localhost'}`)
   const path = url.pathname
+  const getUser = () => currentUser(req)
 
   try {
     if (req.method === 'GET' && path === '/api/health') {
-      json(res, 200, { ok: true, staticUi: hasStaticUi() })
+      json(res, 200, { ok: true, staticUi: hasStaticUi(), email: emailConfigStatus() })
       return
     }
 
     if (req.method === 'GET' && path === '/api/auth/me') {
-      const user = currentUser(req)
+      const user = getUser()
       if (!user) {
         json(res, 401, { error: 'not_authenticated' })
         return
       }
-      json(res, 200, { user })
+      json(res, 200, { user: toApiUser(user) })
       return
     }
 
@@ -99,7 +100,7 @@ const server = http.createServer(async (req, res) => {
       }
       const session = createSession(row.id)
       const user = userForSession(session.id)
-      json(res, 200, { user }, { 'Set-Cookie': sessionSetCookie(session.id) })
+      json(res, 200, { user: user ? toApiUser(user) : null }, { 'Set-Cookie': sessionSetCookie(session.id) })
       return
     }
 
@@ -124,7 +125,7 @@ const server = http.createServer(async (req, res) => {
       }
       const session = createSession(result.userId)
       const user = userForSession(session.id)
-      json(res, 201, { user }, { 'Set-Cookie': sessionSetCookie(session.id) })
+      json(res, 201, { user: user ? toApiUser(user) : null }, { 'Set-Cookie': sessionSetCookie(session.id) })
       return
     }
 
@@ -135,11 +136,15 @@ const server = http.createServer(async (req, res) => {
       return
     }
 
+    if (await tryHandleApi(req, res, url, getUser)) return
+
     if (trySendStatic(req, res)) return
 
     json(res, 404, { error: 'not_found' })
   } catch (err) {
     console.error(err)
+    const user = getUser()
+    logRequestError(err, req, user?.id ?? null)
     json(res, 500, { error: 'internal_error' })
   }
 })

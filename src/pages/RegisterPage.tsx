@@ -1,6 +1,7 @@
 import { type FormEvent, useEffect, useState } from 'react'
 import { Link, Navigate, useNavigate } from 'react-router-dom'
 import { useAuth } from '../auth/AuthContext'
+import { useToast } from '../feedback/ToastContext.tsx'
 import { getRegistrationOpen } from '../lib/api'
 
 export function RegisterPage() {
@@ -10,7 +11,7 @@ export function RegisterPage() {
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
-  const [error, setError] = useState<string | null>(null)
+  const toast = useToast()
   const [busy, setBusy] = useState(false)
   const [open, setOpen] = useState<boolean | null>(null)
 
@@ -25,50 +26,71 @@ export function RegisterPage() {
 
   async function onSubmit(e: FormEvent) {
     e.preventDefault()
-    setError(null)
     setBusy(true)
     try {
       await register(name, email, password)
       navigate('/', { replace: true })
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Registration failed.')
+      toast.error(err instanceof Error ? err.message : 'Registration failed.')
     } finally {
       setBusy(false)
     }
   }
 
-  if (open === null) return <p className="muted">Loading…</p>
+  if (open === null) return <p className="text-muted">Loading…</p>
 
   return (
-    <div className="auth-card">
+    <>
       <h1>Register</h1>
-      <form onSubmit={(e) => void onSubmit(e)}>
-        {error && <p className="error">{error}</p>}
-        <label>
-          Name
-          <input value={name} onChange={(e) => setName(e.target.value)} required />
-        </label>
-        <label>
-          Email
-          <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} required />
-        </label>
-        <label>
-          Password (min 8 characters)
-          <input
-            type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            minLength={8}
-            required
-          />
-        </label>
-        <button type="submit" disabled={busy}>
-          {busy ? 'Creating account…' : 'Register'}
-        </button>
-      </form>
-      <p>
-        <Link to="/login">Back to log in</Link>
-      </p>
-    </div>
+      <div className="row">
+        <div className="col-md-4">
+          <form onSubmit={(e) => void onSubmit(e)}>
+            <hr />
+            <div className="form-floating mb-3">
+              <input
+                className="form-control"
+                id="name"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                placeholder="Name"
+                required
+              />
+              <label htmlFor="name">Name</label>
+            </div>
+            <div className="form-floating mb-3">
+              <input
+                type="email"
+                className="form-control"
+                id="reg-email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="name@example.com"
+                required
+              />
+              <label htmlFor="reg-email">Email</label>
+            </div>
+            <div className="form-floating mb-3">
+              <input
+                type="password"
+                className="form-control"
+                id="reg-password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                minLength={8}
+                placeholder="password"
+                required
+              />
+              <label htmlFor="reg-password">Password</label>
+            </div>
+            <button type="submit" className="w-100 btn btn-lg btn-primary" disabled={busy}>
+              {busy ? 'Creating account…' : 'Register'}
+            </button>
+          </form>
+          <p className="mt-3">
+            <Link to="/login">Back to log in</Link>
+          </p>
+        </div>
+      </div>
+    </>
   )
 }

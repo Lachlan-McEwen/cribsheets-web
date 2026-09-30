@@ -1,0 +1,8 @@
+legacy/
+node_modules/
+api/node_modules/
+dist/
+api/data/
+.git/
+scripts/excel-spike/dotnet-export/bin/
+scripts/excel-spike/dotnet-export/obj/

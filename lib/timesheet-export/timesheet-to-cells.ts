@@ -98,11 +98,9 @@ function writeCountryDay(cells: CellSnapshot, row: number, day: TimeSheetDay): v
 
 function writeEmploymentType(cells: CellSnapshot, isCountryEmployee: boolean): void {
   if (isCountryEmployee) {
-    cells.M8 = EMPLOYMENT_TYPE_TICK
-    cells.M9 = null
+    setCell(cells, 'M8', EMPLOYMENT_TYPE_TICK)
   } else {
-    cells.M8 = null
-    cells.M9 = EMPLOYMENT_TYPE_TICK
+    setCell(cells, 'M9', EMPLOYMENT_TYPE_TICK)
   }
 }
 

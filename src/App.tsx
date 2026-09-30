@@ -1,9 +1,17 @@
 import { Navigate, Route, Routes } from 'react-router-dom'
+import { RequireAdmin } from './auth/RequireAdmin'
 import { RequireAuth } from './auth/RequireAuth'
 import { Layout } from './components/Layout'
-import { HomePage } from './pages/HomePage'
+import { AdminFortnightReportPage } from './pages/admin/AdminFortnightReportPage'
+import { AdminLogsPage } from './pages/admin/AdminLogsPage'
+import { AdminUserDetailPage } from './pages/admin/AdminUserDetailPage'
+import { AdminUsersPage } from './pages/admin/AdminUsersPage'
+import { AdminViewTimesheetPage } from './pages/admin/AdminViewTimesheetPage'
 import { LoginPage } from './pages/LoginPage'
+import { ProfilePage } from './pages/ProfilePage'
+import { PrivacyPage } from './pages/PrivacyPage'
 import { RegisterPage } from './pages/RegisterPage'
+import { TimesheetPage } from './pages/TimesheetPage'
 
 export default function App() {
   return (
@@ -11,8 +19,17 @@ export default function App() {
       <Route element={<Layout />}>
         <Route path="login" element={<LoginPage />} />
         <Route path="register" element={<RegisterPage />} />
+        <Route path="privacy" element={<PrivacyPage />} />
         <Route element={<RequireAuth />}>
-          <Route index element={<HomePage />} />
+          <Route index element={<TimesheetPage />} />
+          <Route path="profile" element={<ProfilePage />} />
+          <Route path="admin" element={<RequireAdmin />}>
+            <Route index element={<AdminUsersPage />} />
+            <Route path="timesheets" element={<AdminFortnightReportPage />} />
+            <Route path="logs" element={<AdminLogsPage />} />
+            <Route path="users/:userId" element={<AdminUserDetailPage />} />
+            <Route path="users/:userId/timesheets/:fortnightEnding" element={<AdminViewTimesheetPage />} />
+          </Route>
         </Route>
         <Route path="*" element={<Navigate to="/" replace />} />
       </Route>

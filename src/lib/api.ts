@@ -9,6 +9,85 @@ export type ApiUser = {
   unitStation: string
   casual: boolean
   isCountryEmployee: boolean
+  defaultShiftHours: number | null
+  defaultShiftCode: string
+  hasSignature: boolean
+  profileIsComplete: boolean
+}
+
+export type TimesheetSummary = {
+  userId: string
+  fortnightEnding: string
+  lastUpdated: number
+  googleFileId: string | null
+  daysComplete: number
+  totalDays: number
+  isUploaded: boolean
+}
+
+export type AdminUserRow = {
+  id: string
+  email: string
+  name: string
+  employeeNumber: string
+  unitStation: string
+  casual: boolean
+  isCountryEmployee: boolean
+  profileIsComplete: boolean
+  hasSignature: boolean
+  isAdmin: boolean
+  isCurrentUser: boolean
+}
+
+export type AdminFortnightReport = {
+  fortnightEnding: string
+  fortnightOptions: string[]
+  currentPermanentFortnight: string
+  currentCasualFortnight: string
+  totalUsers: number
+  incompleteProfiles: number
+  withTimesheet: number
+  uploaded: number
+  rows: {
+    userId: string
+    email: string
+    name: string
+    employeeNumber: string
+    unitStation: string
+    casual: boolean
+    isCountryEmployee: boolean
+    profileIsComplete: boolean
+    appliesToSelectedFortnight: boolean
+    timesheet: TimesheetSummary | null
+  }[]
+}
+
+export type AppErrorLogEntry = {
+  id: number
+  createdUtc: number
+  level: string
+  category: string
+  message: string
+  exception: string | null
+  requestPath: string | null
+  userId: string | null
+  traceId: string | null
+}
+
+export type SchemaMigrationResult = {
+  migrationId: string
+  status: string
+  message: string
+  exception: string | null
+}
+
+export class TimesheetConflictError extends Error {
+  serverLastUpdated: number
+  constructor(serverLastUpdated: number) {
+    super('conflict')
+    this.name = 'TimesheetConflictError'
+    this.serverLastUpdated = serverLastUpdated
+  }
 }
 
 async function apiFetch<T>(path: string, init?: RequestInit): Promise<T> {
@@ -17,8 +96,14 @@ async function apiFetch<T>(path: string, init?: RequestInit): Promise<T> {
     ...init,
     headers: { ...jsonHeaders, ...init?.headers },
   })
-  const body = (await res.json().catch(() => ({}))) as T & { error?: string }
+  const body = (await res.json().catch(() => ({}))) as T & {
+    error?: string
+    serverLastUpdated?: number
+  }
   if (!res.ok) {
+    if (res.status === 409 && body.error === 'conflict' && body.serverLastUpdated != null) {
+      throw new TimesheetConflictError(body.serverLastUpdated)
+    }
     throw new Error(body.error ?? res.statusText)
   }
   return body as T
@@ -52,4 +137,131 @@ export function getRegistrationOpen() {
 
 export function logout() {
   return apiFetch<{ ok: boolean }>('/api/auth/logout', { method: 'POST' })
+}
+
+export type ProfileUpdatePayload = {
+  name: string
+  employeeNumber: string
+  unitStation: string
+  casual: boolean
+  isCountryEmployee: boolean
+  defaultShiftHours: number | null
+  defaultShiftCode: string
+  signatureDataUrl?: string | null
+}
+
+export function updateProfile(payload: ProfileUpdatePayload) {
+  return apiFetch<{ user: ApiUser }>('/api/profile', {
+    method: 'PUT',
+    body: JSON.stringify(payload),
+  })
+}
+
+export function profileSignatureUrl(): string {
+  return '/api/profile/signature'
+}
+
+export function adminUserSignatureUrl(userId: string): string {
+  return `/api/admin/users/${userId}/signature`
+}
+
+export type TimesheetResponse = {
+  fortnightEnding: string
+  lastUpdated: number
+  googleFileId: string | null
+  outputFileName: string | null
+  hasOutput: boolean
+  document: Record<string, unknown>
+}
+
+export function getTemplateVersion(casual: boolean) {
+  return apiFetch<{ version: string }>(`/api/timesheets/meta/template-version?casual=${casual}`)
+}
+
+export function getTimesheet(fortnightEnding: string) {
+  return apiFetch<TimesheetResponse>(`/api/timesheets/${fortnightEnding}`)
+}
+
+export function saveTimesheet(
+  fortnightEnding: string,
+  document: Record<string, unknown>,
+  ifUnmodifiedSince: number | null,
+) {
+  return apiFetch<TimesheetResponse>(`/api/timesheets/${fortnightEnding}`, {
+    method: 'PUT',
+    body: JSON.stringify({ document, ifUnmodifiedSince }),
+  })
+}
+
+export function generateTimesheet(
+  fortnightEnding: string,
+  document: Record<string, unknown>,
+  ifUnmodifiedSince: number | null,
+) {
+  return apiFetch<TimesheetResponse>(`/api/timesheets/${fortnightEnding}/generate`, {
+    method: 'POST',
+    body: JSON.stringify({ document, ifUnmodifiedSince }),
+  })
+}
+
+export function timesheetExportUrl(fortnightEnding: string): string {
+  return `/api/timesheets/${fortnightEnding}/export`
+}
+
+export function getAdminUsers(search?: string) {
+  const q = search?.trim() ? `?search=${encodeURIComponent(search.trim())}` : ''
+  return apiFetch<{ users: AdminUserRow[] }>(`/api/admin/users${q}`)
+}
+
+export function getAdminUser(userId: string) {
+  return apiFetch<{ user: ApiUser; timesheets: TimesheetSummary[] }>(`/api/admin/users/${userId}`)
+}
+
+export function setAdminUser(userId: string, isAdmin: boolean) {
+  return apiFetch<{ ok: boolean }>(`/api/admin/users/${userId}/admin`, {
+    method: 'POST',
+    body: JSON.stringify({ isAdmin }),
+  })
+}
+
+export function deleteAdminUser(userId: string) {
+  return apiFetch<{ ok: boolean }>(`/api/admin/users/${userId}`, { method: 'DELETE' })
+}
+
+export function getAdminFortnightReport(fortnightEnding?: string) {
+  const q = fortnightEnding ? `?fortnightEnding=${encodeURIComponent(fortnightEnding)}` : ''
+  return apiFetch<AdminFortnightReport>(`/api/admin/timesheets/report${q}`)
+}
+
+export function getAdminViewTimesheet(userId: string, fortnightEnding: string) {
+  return apiFetch<{
+    email: string
+    user: ApiUser
+    fortnightEnding: string
+    lastUpdated: number
+    googleFileId: string | null
+    document: Record<string, unknown>
+  }>(`/api/admin/users/${userId}/timesheets/${fortnightEnding}`)
+}
+
+export function getAdminLogs() {
+  return apiFetch<{
+    loggingAvailable: boolean
+    migrationRunUtc: number | null
+    migrationResults: SchemaMigrationResult[]
+    entries: AppErrorLogEntry[]
+  }>('/api/admin/logs')
+}
+
+export function adminErrorMessage(code: string): string {
+  switch (code) {
+    case 'cannot_remove_own_admin':
+      return 'You cannot remove your own admin access.'
+    case 'last_admin':
+      return 'Cannot remove or delete the last admin account.'
+    case 'cannot_delete_self':
+      return 'You cannot delete your own account.'
+    default:
+      return code
+  }
 }

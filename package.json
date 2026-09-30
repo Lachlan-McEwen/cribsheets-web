@@ -3,10 +3,15 @@
   "private": true,
   "version": "0.0.0",
   "type": "module",
+  "engines": {
+    "node": ">=20"
+  },
   "scripts": {
-    "dev": "concurrently -n api,ui -c magenta,cyan \"npm run dev --prefix api\" \"vite\"",
+    "dev:api": "npm --prefix api run dev",
+    "dev": "concurrently -n api,ui -c magenta,cyan \"npm run dev:api\" \"vite\"",
     "dev:ui": "vite",
-    "build": "tsc -b && vite build",
+    "build": "npm run build:ui && npm install --prefix api",
+    "build:ui": "tsc -b && vite build",
     "start": "npm run start --prefix api",
     "seed:admin": "npm run seed:admin --prefix api",
     "seed:admin:railway": "railway ssh -- npm run seed:admin --prefix api",
@@ -18,10 +23,15 @@
     "excel:signature": "bun scripts/excel-spike/test-signature.ts",
     "excel:signature-node": "bun scripts/excel-spike/test-signature-node.ts",
     "excel:parity": "bun test lib/timesheet-export/parity.test.ts",
-    "excel:test": "bun test lib/timesheet-export/"
+    "excel:test": "bun test lib/timesheet-export/",
+    "test:e2e": "playwright test",
+    "test:e2e:ui": "playwright test --ui",
+    "test:e2e:install": "playwright install chromium",
+    "postinstall": "playwright install chromium"
   },
   "dependencies": {
     "@sheetkit/node": "^0.5.1",
+    "bootstrap": "^5.3.8",
     "exceljs": "^4.4.0",
     "react": "^19.2.8",
     "react-dom": "^19.2.8",
@@ -30,6 +40,7 @@
     "xlsx-populate": "^1.21.0"
   },
   "devDependencies": {
+    "@playwright/test": "^1.63.0",
     "@types/adm-zip": "^0.5.8",
     "@types/node": "^24.13.3",
     "@types/react": "^19.2.18",

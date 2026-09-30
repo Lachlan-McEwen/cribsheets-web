@@ -1055,7 +1055,7 @@
     ]
   },
   "packageFolders": {
-    "C:\\Users\\Lachl\\AppData\\Local\\Temp\\cursor-sandbox-cache\\86210fb8748ee4a43549141c79a4b4dd\\nuget": {},
+    "C:\\Users\\Lachl\\AppData\\Local\\Temp\\cursor-sandbox-cache\\ec1ef21959dcb9b4c58e5e86e887e86b\\nuget": {},
     "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages": {}
   },
   "project": {
@@ -1064,7 +1064,7 @@
       "projectUniqueName": "C:\\Users\\Lachl\\OneDrive\\Desktop\\Work\\ticketyview\\CribSheets\\git\\cribsheets-web\\scripts\\excel-spike\\dotnet-export\\DotNetExport.csproj",
       "projectName": "DotNetExport",
       "projectPath": "C:\\Users\\Lachl\\OneDrive\\Desktop\\Work\\ticketyview\\CribSheets\\git\\cribsheets-web\\scripts\\excel-spike\\dotnet-export\\DotNetExport.csproj",
-      "packagesPath": "C:\\Users\\Lachl\\AppData\\Local\\Temp\\cursor-sandbox-cache\\86210fb8748ee4a43549141c79a4b4dd\\nuget",
+      "packagesPath": "C:\\Users\\Lachl\\AppData\\Local\\Temp\\cursor-sandbox-cache\\ec1ef21959dcb9b4c58e5e86e887e86b\\nuget",
       "outputPath": "C:\\Users\\Lachl\\OneDrive\\Desktop\\Work\\ticketyview\\CribSheets\\git\\cribsheets-web\\scripts\\excel-spike\\dotnet-export\\obj\\",
       "projectStyle": "PackageReference",
       "fallbackFolders": [

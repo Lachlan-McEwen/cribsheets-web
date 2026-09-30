@@ -1,6 +1,7 @@
 import { type FormEvent, useEffect, useState } from 'react'
 import { Link, Navigate, useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from '../auth/AuthContext'
+import { useToast } from '../feedback/ToastContext.tsx'
 import { getRegistrationOpen } from '../lib/api'
 
 export function LoginPage() {
@@ -11,7 +12,8 @@ export function LoginPage() {
 
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
-  const [error, setError] = useState<string | null>(null)
+  const [rememberMe, setRememberMe] = useState(false)
+  const toast = useToast()
   const [busy, setBusy] = useState(false)
   const [registrationOpen, setRegistrationOpen] = useState(false)
 
@@ -27,52 +29,81 @@ export function LoginPage() {
 
   async function onSubmit(e: FormEvent) {
     e.preventDefault()
-    setError(null)
     setBusy(true)
     try {
       await login(email, password)
+      void rememberMe
       navigate(from, { replace: true })
     } catch {
-      setError('Invalid email or password.')
+      toast.error('Invalid email or password.')
     } finally {
       setBusy(false)
     }
   }
 
   return (
-    <div className="auth-card">
+    <>
       <h1>Log in</h1>
-      <form onSubmit={(e) => void onSubmit(e)}>
-        {error && <p className="error">{error}</p>}
-        <label>
-          Email
-          <input
-            type="email"
-            autoComplete="username"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            required
-          />
-        </label>
-        <label>
-          Password
-          <input
-            type="password"
-            autoComplete="current-password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-          />
-        </label>
-        <button type="submit" disabled={busy}>
-          {busy ? 'Signing in…' : 'Log in'}
-        </button>
-      </form>
-      {registrationOpen && (
-        <p>
-          <Link to="/register">Register</Link>
-        </p>
-      )}
-    </div>
+      <div className="row">
+        <div className="col-md-4">
+          <section>
+            <form id="account" onSubmit={(e) => void onSubmit(e)}>
+              <hr />
+              <div className="form-floating mb-3">
+                <input
+                  type="email"
+                  className="form-control"
+                  autoComplete="username"
+                  placeholder="name@example.com"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  required
+                  id="email"
+                />
+                <label htmlFor="email">Email</label>
+              </div>
+              <div className="form-floating mb-3">
+                <input
+                  type="password"
+                  className="form-control"
+                  autoComplete="current-password"
+                  placeholder="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                  id="password"
+                />
+                <label htmlFor="password">Password</label>
+              </div>
+              <div className="checkbox mb-3">
+                <label className="form-label">
+                  <input
+                    className="form-check-input"
+                    type="checkbox"
+                    checked={rememberMe}
+                    onChange={(e) => setRememberMe(e.target.checked)}
+                  />{' '}
+                  Remember me?
+                </label>
+              </div>
+              <div>
+                <button id="login-submit" type="submit" className="w-100 btn btn-lg btn-primary" disabled={busy}>
+                  {busy ? 'Signing in…' : 'Log in'}
+                </button>
+              </div>
+              <br />
+              <br />
+              <div>
+                {registrationOpen ? (
+                  <p>
+                    <Link to="/register">Register as a new user</Link>
+                  </p>
+                ) : null}
+              </div>
+            </form>
+          </section>
+        </div>
+      </div>
+    </>
   )
 }

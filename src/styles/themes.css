@@ -1,0 +1,218 @@
+/* Default — Classic (current look) */
+:root,
+[data-theme="default"] {
+    --cs-primary: #1e3a5f;
+    --cs-primary-light: #2d5a8e;
+    --cs-accent: #0d9488;
+    --cs-accent-hover: #0f766e;
+    --cs-bg: #f4f6f9;
+    --cs-surface: #ffffff;
+    --cs-border: #e2e8f0;
+    --cs-text: #1e293b;
+    --cs-text-muted: #64748b;
+    --cs-success: #059669;
+    --cs-shadow-sm: 0 1px 3px rgba(15, 23, 42, 0.06);
+    --cs-shadow-md: 0 4px 12px rgba(15, 23, 42, 0.08);
+    --cs-radius: 8px;
+    --cs-radius-lg: 12px;
+    --cs-btn-radius: 6px;
+    --cs-font-body: 'Inter', system-ui, -apple-system, sans-serif;
+    --cs-font-heading: 'Inter', system-ui, -apple-system, sans-serif;
+    --cs-info-bg: #eff6ff;
+    --cs-info-border: #bfdbfe;
+    --cs-info-text: #1e40af;
+    --cs-focus-ring: rgba(13, 148, 136, 0.15);
+    --cs-focus-ring-strong: rgba(13, 148, 136, 0.25);
+    --cs-section-bg: #f8fafc;
+    --cs-hover-bg: #f8fafc;
+    --cs-clear-hover-bg: #fef2f2;
+    --cs-clear-hover-border: #fecaca;
+    --cs-navbar-style: gradient;
+    --cs-navbar-border: transparent;
+    --cs-signature-bg: #ffffff;
+}
+
+/* Midnight Operator — dark mode, amber accents */
+[data-theme="midnight"] {
+    --cs-primary: #f59e0b;
+    --cs-primary-light: #fbbf24;
+    --cs-accent: #22d3ee;
+    --cs-accent-hover: #06b6d4;
+    --cs-bg: #0f1419;
+    --cs-surface: #1a2332;
+    --cs-border: #2d3748;
+    --cs-text: #e2e8f0;
+    --cs-text-muted: #94a3b8;
+    --cs-success: #34d399;
+    --cs-shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.4);
+    --cs-shadow-md: 0 4px 16px rgba(0, 0, 0, 0.5);
+    --cs-radius: 4px;
+    --cs-radius-lg: 6px;
+    --cs-btn-radius: 4px;
+    --cs-font-body: 'Space Grotesk', system-ui, sans-serif;
+    --cs-font-heading: 'Space Grotesk', system-ui, sans-serif;
+    --cs-info-bg: #1e293b;
+    --cs-info-border: #334155;
+    --cs-info-text: #67e8f9;
+    --cs-focus-ring: rgba(34, 211, 238, 0.2);
+    --cs-focus-ring-strong: rgba(34, 211, 238, 0.35);
+    --cs-section-bg: #151d28;
+    --cs-hover-bg: #243044;
+    --cs-clear-hover-bg: #3f1d1d;
+    --cs-clear-hover-border: #7f1d1d;
+    --cs-navbar-style: solid;
+    --cs-navbar-border: #f59e0b;
+    --cs-signature-bg: #ffffff;
+}
+
+[data-theme="midnight"] .site-navbar {
+    background: #0a0e14;
+    border-bottom: 2px solid var(--cs-navbar-border);
+}
+
+[data-theme="midnight"] .table {
+    --bs-table-bg: var(--cs-surface);
+    --bs-table-color: var(--cs-text);
+    --bs-table-striped-bg: #151d28;
+    --bs-table-hover-bg: #243044;
+    --bs-table-border-color: var(--cs-border);
+}
+
+[data-theme="midnight"] .table-striped > tbody > tr:nth-of-type(odd) > * {
+    color: var(--cs-text);
+}
+
+[data-theme="midnight"] .alert-danger {
+    background-color: #3f1d1d;
+    border-color: #7f1d1d;
+    color: #fecaca;
+}
+
+/* Terracotta Garden — warm, soft, human */
+[data-theme="terracotta"] {
+    --cs-primary: #c4683a;
+    --cs-primary-light: #d4845c;
+    --cs-accent: #6b8f71;
+    --cs-accent-hover: #557a5b;
+    --cs-bg: #faf6f1;
+    --cs-surface: #fffdf9;
+    --cs-border: #e8ddd0;
+    --cs-text: #3d2c21;
+    --cs-text-muted: #8b7355;
+    --cs-success: #5a8f65;
+    --cs-shadow-sm: 0 2px 8px rgba(61, 44, 33, 0.06);
+    --cs-shadow-md: 0 6px 20px rgba(61, 44, 33, 0.1);
+    --cs-radius: 14px;
+    --cs-radius-lg: 20px;
+    --cs-btn-radius: 999px;
+    --cs-font-body: 'DM Sans', system-ui, sans-serif;
+    --cs-font-heading: 'Fraunces', Georgia, serif;
+    --cs-info-bg: #eef5ea;
+    --cs-info-border: #c5d9bc;
+    --cs-info-text: #3d5a3a;
+    --cs-focus-ring: rgba(107, 143, 113, 0.2);
+    --cs-focus-ring-strong: rgba(107, 143, 113, 0.3);
+    --cs-section-bg: #f5efe8;
+    --cs-hover-bg: #f5efe8;
+    --cs-clear-hover-bg: #fce8e4;
+    --cs-clear-hover-border: #f0c4b8;
+    --cs-navbar-style: gradient;
+    --cs-navbar-border: transparent;
+    --cs-signature-bg: #fffdf9;
+}
+
+[data-theme="terracotta"] .site-navbar {
+    background: linear-gradient(120deg, #c4683a 0%, #a84f2a 55%, #6b8f71 100%);
+}
+
+[data-theme="terracotta"] .page-title {
+    font-family: var(--cs-font-heading);
+    font-weight: 600;
+    letter-spacing: -0.01em;
+}
+
+[data-theme="terracotta"] .form-card,
+[data-theme="terracotta"] .dateRow {
+    border-width: 0;
+    box-shadow: var(--cs-shadow-md);
+}
+
+[data-theme="terracotta"] #save-button {
+    border-radius: 999px;
+}
+
+/* Ledger & Ink — vintage paper timesheet */
+[data-theme="ledger"] {
+    --cs-primary: #1b4332;
+    --cs-primary-light: #2d6a4f;
+    --cs-accent: #1b4332;
+    --cs-accent-hover: #14532d;
+    --cs-bg: #f5f0e6;
+    --cs-surface: #faf8f3;
+    --cs-border: #c9b896;
+    --cs-text: #2c2416;
+    --cs-text-muted: #6b5d4d;
+    --cs-success: #1b4332;
+    --cs-shadow-sm: none;
+    --cs-shadow-md: none;
+    --cs-radius: 2px;
+    --cs-radius-lg: 2px;
+    --cs-btn-radius: 2px;
+    --cs-font-body: 'Source Sans 3', Georgia, serif;
+    --cs-font-heading: 'Libre Baskerville', Georgia, serif;
+    --cs-info-bg: #e8f0e8;
+    --cs-info-border: #a8c5a8;
+    --cs-info-text: #1b4332;
+    --cs-focus-ring: rgba(27, 67, 50, 0.15);
+    --cs-focus-ring-strong: rgba(27, 67, 50, 0.25);
+    --cs-section-bg: #ede8dc;
+    --cs-hover-bg: #ede8dc;
+    --cs-clear-hover-bg: #f5e6e6;
+    --cs-clear-hover-border: #c9a0a0;
+    --cs-navbar-style: solid;
+    --cs-navbar-border: #c9b896;
+    --cs-signature-bg: #faf8f3;
+}
+
+[data-theme="ledger"] body {
+    background-color: var(--cs-bg);
+    background-image:
+        repeating-linear-gradient(
+            0deg,
+            transparent,
+            transparent 27px,
+            rgba(201, 184, 150, 0.15) 27px,
+            rgba(201, 184, 150, 0.15) 28px
+        );
+}
+
+[data-theme="ledger"] .site-navbar {
+    background: var(--cs-primary);
+    border-bottom: 3px double var(--cs-navbar-border);
+}
+
+[data-theme="ledger"] .page-title {
+    font-family: var(--cs-font-heading);
+    font-weight: 700;
+    text-transform: none;
+    letter-spacing: 0.01em;
+}
+
+[data-theme="ledger"] .form-card,
+[data-theme="ledger"] .dateRow,
+[data-theme="ledger"] .admin-stat-card {
+    border-width: 1px;
+    border-style: solid;
+    box-shadow: none;
+}
+
+[data-theme="ledger"] .admin-stat-value {
+    font-family: 'IBM Plex Mono', monospace;
+    font-weight: 500;
+}
+
+[data-theme="ledger"] .btn {
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    font-size: 0.8125rem;
+}

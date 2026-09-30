@@ -1,8 +1,14 @@
+# Railway: deploy from this repo root.
+# 1. Add a volume mounted at /data
+# 2. Set variable DATA_DIR=/data
+# 3. Deploy — UI + API on one service (PORT from Railway)
+
 [build]
-builder = "DOCKERFILE"
-dockerfilePath = "Dockerfile"
+builder = "RAILPACK"
+buildCommand = "npm install && npm run build"
 
 [deploy]
+startCommand = "npm start"
 healthcheckPath = "/api/health"
 healthcheckTimeout = 120
 restartPolicyType = "ON_FAILURE"

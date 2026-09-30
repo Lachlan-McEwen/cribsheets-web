@@ -15,7 +15,7 @@ The .NET source lives beside this repo at `../CribSheets`. A local **junction** 
 bun run setup:legacy   # one-time: legacy\CribSheets → ..\CribSheets
 bun install
 cd api && npm install && cd ..
-copy api\.env.example api\.env   # set ADMIN_* and optional DEV_USER_*
+copy api\.env.example api\.env   # set ADMIN_* , optional DEV_USER_* , and Resend (RESEND_API_KEY, EMAIL_FROM)
 ```
 
 Each machine needs `setup:legacy` once (or run `scripts/setup-legacy.ps1` manually).
@@ -63,10 +63,15 @@ One service serves the built React UI and `/api` (same as `npm start` locally). 
    | `ADMIN_NAME` | optional display name |
    | `ADMIN_EMPLOYEE_NUMBER` | optional |
    | `ADMIN_UNIT_STATION` | optional |
+   | `RESEND_API_KEY` | Resend API key (`re_…`) |
+   | `EMAIL_FROM` | Verified sender, e.g. `Crib Sheets <noreply@yourdomain.com>` |
+   | `EMAIL_REPLY_TO` | optional support inbox |
 
    Railway sets **`PORT`** automatically. Do not set `CLIENT_ORIGIN` unless the UI is on a different host.
 
-4. Deploy: connect the repo (Dockerfile build) or from this directory:
+   After deploy, verify email: log in as admin and `POST /api/admin/email/test` (optional JSON `{ "to": "you@example.com" }`). `GET /api/health` reports `email.configured`.
+
+4. Deploy: connect the repo (Railpack reads `railway.toml`) or from this directory:
 
    ```powershell
    railway link    # or railway init --name cribsheets-web
