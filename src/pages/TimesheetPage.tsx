@@ -95,6 +95,7 @@ export function TimesheetPage() {
       stations={stations}
       hasDownload={hasOutput}
       downloadUrl={timesheetExportUrl(doc.fortnightEnding)}
+      authorisingManagerEmail={user.authorisingManagerEmail}
       onFortnightChange={(iso) => navigate(`/?fortnightEnding=${iso}`)}
       onDocumentChange={setDoc}
       onSave={async (document) => {

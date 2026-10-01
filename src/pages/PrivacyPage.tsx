@@ -51,8 +51,8 @@ export function PrivacyPage() {
             </li>
             <li>
               <strong>Profile details</strong> — name, employee number, unit or station, employment type
-              (e.g. metro or country), casual status, default shift settings, and a drawn signature image when
-              you save one.
+              (e.g. metro or country), casual status, default shift settings, an optional authorising manager
+              email address, and a drawn signature image when you save one.
             </li>
             <li>
               <strong>Timesheet data</strong> — shift entries, breaks, codes, and related fields you enter to
@@ -82,7 +82,13 @@ export function PrivacyPage() {
           </ul>
           <p>
             Your exports are generated for you. Downloading a file to your device is under your control; we do
-            not send your timesheet to other parties as part of that process.
+            not send your timesheet to other parties as part of generating or downloading exports.
+          </p>
+          <p>
+            If you use <strong>Email for approval</strong>, we open your device&apos;s email app with a
+            pre-filled subject and message. If you saved an authorising manager email in your profile, we
+            include that address as the recipient. We do not send that email or attach your spreadsheet for you;
+            you attach the file if needed and send the message from your own email account.
           </p>
         </section>
 

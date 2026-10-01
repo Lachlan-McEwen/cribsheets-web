@@ -14,6 +14,7 @@ export type UserRow = {
   isCountryEmployee: boolean
   defaultShiftHours: number | null
   defaultShiftCode: string
+  authorisingManagerEmail: string
   emailVerifiedAt: number | null
 }
 
@@ -102,6 +103,7 @@ function migrate(db: Database.Database): void {
   ensureColumn(db, 'users', 'default_shift_hours', 'default_shift_hours REAL')
   ensureColumn(db, 'users', 'default_shift_code', "default_shift_code TEXT NOT NULL DEFAULT 'None'")
   ensureColumn(db, 'users', 'email_verified_at', 'email_verified_at INTEGER')
+  ensureColumn(db, 'users', 'authorising_manager_email', "authorising_manager_email TEXT NOT NULL DEFAULT ''")
 
   db.exec(`
     CREATE TABLE IF NOT EXISTS email_logs (
@@ -150,6 +152,7 @@ const USER_SELECT = `u.id, u.email, u.name, u.is_admin AS isAdmin,
   u.employee_number AS employeeNumber, u.unit_station AS unitStation,
   u.casual, u.is_country_employee AS isCountryEmployee,
   u.default_shift_hours AS defaultShiftHours, u.default_shift_code AS defaultShiftCode,
+  u.authorising_manager_email AS authorisingManagerEmail,
   u.email_verified_at AS emailVerifiedAt`
 
 type UserDbRow = {
@@ -163,6 +166,7 @@ type UserDbRow = {
   isCountryEmployee: number
   defaultShiftHours: number | null
   defaultShiftCode: string
+  authorisingManagerEmail: string
   emailVerifiedAt: number | null
 }
 
@@ -178,6 +182,7 @@ function rowToUser(row: UserDbRow): UserRow {
     isCountryEmployee: Boolean(row.isCountryEmployee),
     defaultShiftHours: row.defaultShiftHours ?? null,
     defaultShiftCode: row.defaultShiftCode ?? 'None',
+    authorisingManagerEmail: row.authorisingManagerEmail ?? '',
     emailVerifiedAt: row.emailVerifiedAt ?? null,
   }
 }
@@ -229,6 +234,7 @@ export function createUser(
     isCountryEmployee: profile.isCountryEmployee ? 1 : 0,
     defaultShiftHours: null,
     defaultShiftCode: 'None',
+    authorisingManagerEmail: '',
     emailVerifiedAt: null,
   })
 }
@@ -298,6 +304,7 @@ export function findUserById(userId: string): UserRow | null {
               employee_number AS employeeNumber, unit_station AS unitStation,
               casual, is_country_employee AS isCountryEmployee,
               default_shift_hours AS defaultShiftHours, default_shift_code AS defaultShiftCode,
+              authorising_manager_email AS authorisingManagerEmail,
               email_verified_at AS emailVerifiedAt
        FROM users WHERE id = ?`,
     )
@@ -320,6 +327,7 @@ export type ProfileUpdate = {
   isCountryEmployee: boolean
   defaultShiftHours: number | null
   defaultShiftCode: string
+  authorisingManagerEmail: string
 }
 
 export function updateUserProfile(userId: string, profile: ProfileUpdate): UserRow | null {
@@ -328,7 +336,8 @@ export function updateUserProfile(userId: string, profile: ProfileUpdate): UserR
       `UPDATE users SET
         name = ?, employee_number = ?, unit_station = ?,
         casual = ?, is_country_employee = ?,
-        default_shift_hours = ?, default_shift_code = ?
+        default_shift_hours = ?, default_shift_code = ?,
+        authorising_manager_email = ?
        WHERE id = ?`,
     )
     .run(
@@ -339,6 +348,7 @@ export function updateUserProfile(userId: string, profile: ProfileUpdate): UserR
       profile.isCountryEmployee ? 1 : 0,
       profile.defaultShiftHours,
       profile.defaultShiftCode,
+      profile.authorisingManagerEmail,
       userId,
     )
   return findUserById(userId)

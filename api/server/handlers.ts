@@ -42,6 +42,7 @@ import {
   setTimesheetOutput,
 } from './timesheetStore.js'
 import { deliverEmail, emailConfigStatus } from './email.js'
+import { parseOptionalEmail } from './emailFormat.js'
 import { listRecentEmailLogs } from './emailLog.js'
 import { e2eTestHooksEnabled } from './testHooks.js'
 import { toApiUser } from './userApi.js'
@@ -120,6 +121,7 @@ export async function tryHandleApi(
       isCountryEmployee?: boolean
       defaultShiftHours?: number | null
       defaultShiftCode?: string
+      authorisingManagerEmail?: string | null
       signatureDataUrl?: string | null
     }>(req)
 
@@ -130,6 +132,15 @@ export async function tryHandleApi(
         return true
       }
       saveSignaturePng(user.id, png)
+    }
+
+    const managerEmailParsed =
+      body.authorisingManagerEmail !== undefined
+        ? parseOptionalEmail(body.authorisingManagerEmail)
+        : user.authorisingManagerEmail || null
+    if (managerEmailParsed === 'invalid') {
+      json(res, 400, { error: 'invalid_authorising_manager_email' })
+      return true
     }
 
     const updated = updateUserProfile(user.id, {
@@ -143,6 +154,10 @@ export async function tryHandleApi(
           ? null
           : Number(body.defaultShiftHours),
       defaultShiftCode: (body.defaultShiftCode ?? user.defaultShiftCode).trim() || 'None',
+      authorisingManagerEmail:
+        body.authorisingManagerEmail !== undefined
+          ? (managerEmailParsed ?? '')
+          : user.authorisingManagerEmail,
     })
     if (!updated) {
       json(res, 404, { error: 'not_found' })

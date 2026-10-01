@@ -1,6 +1,36 @@
 import { useEffect, useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 
+const verifyEmailPromises = new Map<string, Promise<boolean>>()
+
+function verifyEmailCacheKey(token: string): string {
+  return `cribsheets:verify-email:${token}`
+}
+
+function verifyEmailWithToken(token: string): Promise<boolean> {
+  const cacheKey = verifyEmailCacheKey(token)
+  if (sessionStorage.getItem(cacheKey) === 'ok') return Promise.resolve(true)
+
+  const inFlight = verifyEmailPromises.get(token)
+  if (inFlight) return inFlight
+
+  const promise = fetch(`/api/auth/verify-email?token=${encodeURIComponent(token)}`, {
+    credentials: 'include',
+  })
+    .then((res) => {
+      const ok = res.ok
+      if (ok) sessionStorage.setItem(cacheKey, 'ok')
+      return ok
+    })
+    .catch(() => false)
+    .finally(() => {
+      verifyEmailPromises.delete(token)
+    })
+
+  verifyEmailPromises.set(token, promise)
+  return promise
+}
+
 export function VerifyEmailPage() {
   const [params] = useSearchParams()
   const token = params.get('token')
@@ -11,9 +41,13 @@ export function VerifyEmailPage() {
       setState('error')
       return
     }
-    void fetch(`/api/auth/verify-email?token=${encodeURIComponent(token)}`, { credentials: 'include' })
-      .then((res) => setState(res.ok ? 'ok' : 'error'))
-      .catch(() => setState('error'))
+    let active = true
+    void verifyEmailWithToken(token).then((ok) => {
+      if (active) setState(ok ? 'ok' : 'error')
+    })
+    return () => {
+      active = false
+    }
   }, [token])
 
   if (state === 'loading') return <p className="text-muted">Verifying…</p>

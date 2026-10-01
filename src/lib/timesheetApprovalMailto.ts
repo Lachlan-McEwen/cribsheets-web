@@ -6,6 +6,7 @@ import { formatDateAu, parseIsoDate } from './format.ts'
 export function timesheetApprovalMailtoUrl(
   document: TimesheetDocument,
   hasGeneratedSpreadsheet: boolean,
+  authorisingManagerEmail?: string,
 ): string {
   const { user, fortnightEnding } = document
   const endingLabel = formatDateAu(parseIsoDate(fortnightEnding))
@@ -33,6 +34,8 @@ export function timesheetApprovalMailtoUrl(
   lines.push('', 'Thanks.')
 
   const params = new URLSearchParams()
+  const manager = authorisingManagerEmail?.trim().toLowerCase()
+  if (manager) params.set('to', manager)
   params.set('subject', subject)
   params.set('body', lines.join('\r\n'))
   return `mailto:?${params.toString()}`

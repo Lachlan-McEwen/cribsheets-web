@@ -14,6 +14,7 @@ export type ApiUser = {
   hasSignature: boolean
   profileIsComplete: boolean
   emailVerified: boolean
+  authorisingManagerEmail: string
 }
 
 export type TimesheetSummary = {
@@ -176,6 +177,7 @@ export type ProfileUpdatePayload = {
   isCountryEmployee: boolean
   defaultShiftHours: number | null
   defaultShiftCode: string
+  authorisingManagerEmail: string
   signatureDataUrl?: string | null
 }
 

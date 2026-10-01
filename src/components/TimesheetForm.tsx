@@ -18,6 +18,7 @@ type Props = {
   onGenerate: (doc: TimesheetDocument) => Promise<void>
   hasDownload: boolean
   downloadUrl: string
+  authorisingManagerEmail: string
 }
 
 export function TimesheetForm({
@@ -31,6 +32,7 @@ export function TimesheetForm({
   onGenerate,
   hasDownload,
   downloadUrl,
+  authorisingManagerEmail,
 }: Props) {
   const [expandedDay, setExpandedDay] = useState<number | null>(null)
   const [formChanged, setFormChanged] = useState(false)
@@ -97,7 +99,11 @@ export function TimesheetForm({
       .finally(() => setGenerateBusy(false))
   }
 
-  const approvalMailto = timesheetApprovalMailtoUrl(document, hasDownload || showDownload)
+  const approvalMailto = timesheetApprovalMailtoUrl(
+    document,
+    hasDownload || showDownload,
+    authorisingManagerEmail,
+  )
 
   return (
     <>

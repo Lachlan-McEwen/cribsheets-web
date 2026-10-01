@@ -21,6 +21,9 @@ scripts/excel-spike/output/
 scripts/.resend-domain.json
 api/data/
 api/data-e2e/
+api/api/data-e2e/
+scripts/excel-spike/dotnet-export/bin/
+scripts/excel-spike/dotnet-export/obj/
 *.local
 
 # Secrets (match aspnet repo)

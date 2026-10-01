@@ -46,6 +46,7 @@ export function ProfilePage() {
           ? Number(fd.get('defaultShiftHours'))
           : null,
         defaultShiftCode: String(fd.get('defaultShiftCode') ?? 'None'),
+        authorisingManagerEmail: String(fd.get('authorisingManagerEmail') ?? ''),
         signatureDataUrl,
       })
       await refresh()
@@ -138,6 +139,23 @@ export function ProfilePage() {
                     required
                   />
                 </div>
+              </div>
+              <br />
+              <div className="form-group">
+                <label className="control-label col-12">Authorising manager email</label>
+                <div>
+                  <input
+                    type="email"
+                    defaultValue={user.authorisingManagerEmail}
+                    className="form-control col-12"
+                    name="authorisingManagerEmail"
+                    placeholder="supervisor@example.com"
+                    autoComplete="email"
+                  />
+                </div>
+                <p className="form-text text-muted mb-0 mt-1">
+                  Optional. Used to pre-fill <strong>Email for approval</strong> on your timesheet.
+                </p>
               </div>
               <br />
               <div className="form-group">
