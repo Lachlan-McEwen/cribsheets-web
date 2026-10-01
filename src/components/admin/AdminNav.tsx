@@ -15,7 +15,7 @@ export function AdminNav() {
       </li>
       <li className="nav-item">
         <NavLink className="nav-link" to="/admin/logs">
-          Error log
+          Logs
         </NavLink>
       </li>
     </ul>

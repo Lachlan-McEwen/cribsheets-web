@@ -13,7 +13,7 @@ type AuthState = {
   user: ApiUser | null
   loading: boolean
   login: (email: string, password: string) => Promise<void>
-  register: (name: string, email: string, password: string) => Promise<void>
+  register: (name: string, email: string, password: string) => Promise<{ needsEmailVerification: boolean }>
   logout: () => Promise<void>
   refresh: () => Promise<void>
 }
@@ -45,8 +45,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [])
 
   const register = useCallback(async (name: string, email: string, password: string) => {
-    const { user: created } = await apiRegister(name, email, password)
-    setUser(created)
+    const result = await apiRegister(name, email, password)
+    return { needsEmailVerification: result.needsEmailVerification }
   }, [])
 
   const logout = useCallback(async () => {

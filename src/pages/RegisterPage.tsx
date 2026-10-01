@@ -29,7 +29,7 @@ export function RegisterPage() {
     setBusy(true)
     try {
       await register(name, email, password)
-      navigate('/', { replace: true })
+      navigate(`/check-email?email=${encodeURIComponent(email)}`, { replace: true })
     } catch (err) {
       toast.error(err instanceof Error ? err.message : 'Registration failed.')
     } finally {

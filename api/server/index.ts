@@ -13,9 +13,17 @@ import {
 import { setLoggingAvailable, setMigrationResults } from './errorLog.js'
 import { emailConfigStatus } from './email.js'
 import { loadEnvFiles } from './env.js'
+import {
+  handleChangePassword,
+  handleForgotPassword,
+  handleResendVerification,
+  handleResetPassword,
+  handleVerifyEmail,
+} from './authHandlers.js'
 import { logRequestError, tryHandleApi } from './handlers.js'
 import { json } from './httpUtil.js'
-import { registrationAllowed, registerUser, validateRegisterInput } from './register.js'
+import { completeRegistration, registrationAllowed, registerUser, validateRegisterInput } from './register.js'
+import { tryHandleTestHooks } from './testHooks.js'
 import { hasStaticUi, trySendStatic } from './static.js'
 import { toApiUser } from './userApi.js'
 
@@ -29,6 +37,8 @@ setMigrationResults([
   { migrationId: 'users', status: 'Ready', message: 'Users and sessions tables available.', exception: null },
   { migrationId: 'timesheets', status: 'Ready', message: 'Timesheet storage available.', exception: null },
   { migrationId: 'app_error_logs', status: 'Ready', message: 'Application error log available.', exception: null },
+  { migrationId: 'email_logs', status: 'Ready', message: 'Outbound email log available.', exception: null },
+  { migrationId: 'auth_tokens', status: 'Ready', message: 'Auth email tokens available.', exception: null },
 ])
 
 const PORT = Number(process.env.PORT) || 3849
@@ -98,6 +108,10 @@ const server = http.createServer(async (req, res) => {
         json(res, 401, { error: 'invalid_credentials' })
         return
       }
+      if (row.emailVerifiedAt == null) {
+        json(res, 403, { error: 'email_not_verified' })
+        return
+      }
       const session = createSession(row.id)
       const user = userForSession(session.id)
       json(res, 200, { user: user ? toApiUser(user) : null }, { 'Set-Cookie': sessionSetCookie(session.id) })
@@ -123,9 +137,42 @@ const server = http.createServer(async (req, res) => {
         json(res, status, { error: result.error })
         return
       }
-      const session = createSession(result.userId)
-      const user = userForSession(session.id)
-      json(res, 201, { user: user ? toApiUser(user) : null }, { 'Set-Cookie': sessionSetCookie(session.id) })
+      const mailed = await completeRegistration(result.userId, result.email)
+      if (!mailed.ok) {
+        json(res, 503, { error: mailed.error })
+        return
+      }
+      json(res, 201, { ok: true, needsEmailVerification: true })
+      return
+    }
+
+    if (req.method === 'POST' && path === '/api/auth/forgot-password') {
+      await handleForgotPassword(req, res)
+      return
+    }
+
+    if (req.method === 'POST' && path === '/api/auth/reset-password') {
+      await handleResetPassword(req, res)
+      return
+    }
+
+    if (req.method === 'GET' && path === '/api/auth/verify-email') {
+      await handleVerifyEmail(req, res)
+      return
+    }
+
+    if (req.method === 'POST' && path === '/api/auth/resend-verification') {
+      await handleResendVerification(req, res)
+      return
+    }
+
+    if (req.method === 'POST' && path === '/api/auth/change-password') {
+      const user = getUser()
+      if (!user) {
+        json(res, 401, { error: 'not_authenticated' })
+        return
+      }
+      await handleChangePassword(req, res, user)
       return
     }
 
@@ -135,6 +182,8 @@ const server = http.createServer(async (req, res) => {
       json(res, 200, { ok: true }, { 'Set-Cookie': sessionClearCookie() })
       return
     }
+
+    if (tryHandleTestHooks(req, res, path, req.method ?? 'GET')) return
 
     if (await tryHandleApi(req, res, url, getUser)) return
 

@@ -1,7 +1,8 @@
+import { sendVerificationForNewUser } from './authHandlers.js'
 import { countUsers, createUser, findUserByEmail } from './db.js'
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-const MIN_PASSWORD_LENGTH = 8
+export const MIN_PASSWORD_LENGTH = 8
 const MAX_NAME_LENGTH = 120
 
 export type RegisterInput = { email: string; password: string; name: string }
@@ -47,5 +48,17 @@ export function registerUser(
     return { ok: false, error: 'email_taken' }
   }
   const user = createUser(input.email, input.password, false, { name: input.name })
-  return { ok: true, userId: user.id }
+  return { ok: true, userId: user.id, email: user.email }
+}
+
+export async function completeRegistration(
+  userId: string,
+  email: string,
+): Promise<{ ok: true } | { ok: false; error: 'verification_email_failed' }> {
+  try {
+    await sendVerificationForNewUser(userId, email)
+    return { ok: true }
+  } catch {
+    return { ok: false, error: 'verification_email_failed' }
+  }
 }

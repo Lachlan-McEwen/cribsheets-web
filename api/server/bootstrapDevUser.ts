@@ -1,4 +1,4 @@
-import { createUser, findUserByEmail } from './db.js'
+import { createUser, findUserByEmail, setEmailVerified } from './db.js'
 
 export function ensureBootstrapDevUser(): void {
   if (process.env.NODE_ENV === 'production') return
@@ -11,10 +11,11 @@ export function ensureBootstrapDevUser(): void {
     return
   }
 
-  createUser(email, password, false, {
+  const created = createUser(email, password, false, {
     name: process.env.DEV_USER_NAME?.trim() ?? 'Dev User',
     employeeNumber: process.env.DEV_USER_EMPLOYEE_NUMBER?.trim() ?? '0000',
     unitStation: process.env.DEV_USER_UNIT_STATION?.trim() ?? 'DEV',
   })
+  setEmailVerified(created.id)
   console.log(`[bootstrap] Created dev user ${email}`)
 }

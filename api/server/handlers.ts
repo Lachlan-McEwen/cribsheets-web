@@ -41,7 +41,9 @@ import {
   saveTimesheet,
   setTimesheetOutput,
 } from './timesheetStore.js'
-import { emailConfigStatus, sendEmail } from './email.js'
+import { deliverEmail, emailConfigStatus } from './email.js'
+import { listRecentEmailLogs } from './emailLog.js'
+import { e2eTestHooksEnabled } from './testHooks.js'
 import { toApiUser } from './userApi.js'
 
 function requireUser(getUser: () => UserRow | null, res: http.ServerResponse): UserRow | null {
@@ -518,12 +520,15 @@ export async function tryHandleApi(
       return true
     }
     try {
-      const { id } = await sendEmail({
-        to,
-        subject: 'Crib Sheets — test email',
-        text: 'If you received this, Resend is configured correctly for Crib Sheets.',
-        html: '<p>If you received this, Resend is configured correctly for <strong>Crib Sheets</strong>.</p>',
-      })
+      const { id } = await deliverEmail(
+        {
+          to,
+          subject: 'Crib Sheets — test email',
+          text: 'If you received this, Resend is configured correctly for Crib Sheets.',
+          html: '<p>If you received this, Resend is configured correctly for <strong>Crib Sheets</strong>.</p>',
+        },
+        { kind: 'admin_test', userId: admin.id },
+      )
       json(res, 200, { ok: true, id, to })
     } catch (err) {
       const message = err instanceof Error ? err.message : String(err)
@@ -541,6 +546,9 @@ export async function tryHandleApi(
       migrationRunUtc,
       migrationResults,
       entries: getRecentErrorLogs(100),
+      email: emailConfigStatus(),
+      e2eTestHooksEnabled: e2eTestHooksEnabled(),
+      emailLogs: listRecentEmailLogs(100),
     })
     return true
   }

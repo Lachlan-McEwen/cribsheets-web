@@ -1,4 +1,4 @@
-import { createUser, findUserByEmail, setUserAdmin } from './db.js'
+import { createUser, findUserByEmail, setEmailVerified, setUserAdmin } from './db.js'
 
 export function ensureBootstrapAdmin(): void {
   const email = process.env.ADMIN_EMAIL?.trim().toLowerCase()
@@ -20,6 +20,7 @@ export function ensureBootstrapAdmin(): void {
     return
   }
 
-  createUser(email, password, true, profile)
+  const created = createUser(email, password, true, profile)
+  setEmailVerified(created.id)
   console.log(`[bootstrap] Created admin user ${email}`)
 }

@@ -1,4 +1,6 @@
 import { Resend } from 'resend'
+import { insertEmailLog, updateEmailLog, type EmailLogKind } from './emailLog.js'
+import { emailSendMode } from './emailSendMode.js'
 
 export type SendEmailInput = {
   to: string | string[]
@@ -7,9 +9,15 @@ export type SendEmailInput = {
   html?: string
 }
 
+export type DeliverEmailMeta = {
+  kind: EmailLogKind
+  userId?: string | null
+}
+
 export type EmailConfigStatus = {
   configured: boolean
   from: string | null
+  sendMode: 'send' | 'log'
 }
 
 let client: Resend | null = null
@@ -27,7 +35,7 @@ function emailFrom(): string | null {
 export function emailConfigStatus(): EmailConfigStatus {
   const from = emailFrom()
   const configured = Boolean(resendApiKey() && from)
-  return { configured, from: configured ? from : null }
+  return { configured, from: configured ? from : null, sendMode: emailSendMode() }
 }
 
 function getResend(): Resend {
@@ -37,7 +45,12 @@ function getResend(): Resend {
   return client
 }
 
-export async function sendEmail(input: SendEmailInput): Promise<{ id: string }> {
+function primaryRecipient(to: string | string[]): string {
+  if (Array.isArray(to)) return to[0] ?? ''
+  return to
+}
+
+async function sendViaResend(input: SendEmailInput): Promise<{ id: string }> {
   const from = emailFrom()
   if (!from) throw new Error('EMAIL_FROM is not set')
 
@@ -55,4 +68,35 @@ export async function sendEmail(input: SendEmailInput): Promise<{ id: string }> 
   if (error) throw new Error(error.message)
   if (!data?.id) throw new Error('Resend returned no message id')
   return { id: data.id }
+}
+
+export async function deliverEmail(input: SendEmailInput, meta: DeliverEmailMeta): Promise<{ id: string }> {
+  const logId = insertEmailLog({
+    kind: meta.kind,
+    toEmail: primaryRecipient(input.to),
+    subject: input.subject,
+    textBody: input.text,
+    htmlBody: input.html ?? null,
+    userId: meta.userId ?? null,
+  })
+
+  if (emailSendMode() === 'log') {
+    updateEmailLog(logId, { status: 'logged_only' })
+    return { id: `log-${logId}` }
+  }
+
+  try {
+    const { id } = await sendViaResend(input)
+    updateEmailLog(logId, { status: 'sent', providerMessageId: id })
+    return { id }
+  } catch (err) {
+    const message = err instanceof Error ? err.message : String(err)
+    updateEmailLog(logId, { status: 'failed', error: message })
+    throw err
+  }
+}
+
+/** @deprecated Prefer deliverEmail with a kind for logging. */
+export async function sendEmail(input: SendEmailInput): Promise<{ id: string }> {
+  return deliverEmail(input, { kind: 'generic' })
 }

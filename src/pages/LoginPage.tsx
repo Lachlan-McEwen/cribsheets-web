@@ -2,7 +2,7 @@ import { type FormEvent, useEffect, useState } from 'react'
 import { Link, Navigate, useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from '../auth/AuthContext'
 import { useToast } from '../feedback/ToastContext.tsx'
-import { getRegistrationOpen } from '../lib/api'
+import { getRegistrationOpen, resendVerification } from '../lib/api'
 
 export function LoginPage() {
   const { user, login } = useAuth()
@@ -16,6 +16,7 @@ export function LoginPage() {
   const toast = useToast()
   const [busy, setBusy] = useState(false)
   const [registrationOpen, setRegistrationOpen] = useState(false)
+  const [unverifiedEmail, setUnverifiedEmail] = useState<string | null>(null)
 
   useEffect(() => {
     void getRegistrationOpen()
@@ -31,11 +32,17 @@ export function LoginPage() {
     e.preventDefault()
     setBusy(true)
     try {
+      setUnverifiedEmail(null)
       await login(email, password)
       void rememberMe
       navigate(from, { replace: true })
-    } catch {
-      toast.error('Invalid email or password.')
+    } catch (err) {
+      if (err instanceof Error && err.message === 'email_not_verified') {
+        setUnverifiedEmail(email)
+        toast.error('Verify your email before logging in.')
+      } else {
+        toast.error('Invalid email or password.')
+      }
     } finally {
       setBusy(false)
     }
@@ -94,6 +101,20 @@ export function LoginPage() {
               <br />
               <br />
               <div>
+                <p>
+                  <Link to="/forgot-password">Forgot password?</Link>
+                </p>
+                {unverifiedEmail ? (
+                  <p>
+                    <button
+                      type="button"
+                      className="btn btn-link p-0"
+                      onClick={() => void resendVerification(unverifiedEmail).then(() => toast.success('Verification email sent.'))}
+                    >
+                      Resend verification email
+                    </button>
+                  </p>
+                ) : null}
                 {registrationOpen ? (
                   <p>
                     <Link to="/register">Register as a new user</Link>

@@ -13,6 +13,7 @@ export type ApiUser = {
   defaultShiftCode: string
   hasSignature: boolean
   profileIsComplete: boolean
+  emailVerified: boolean
 }
 
 export type TimesheetSummary = {
@@ -125,9 +126,37 @@ export function login(email: string, password: string) {
 }
 
 export function register(name: string, email: string, password: string) {
-  return apiFetch<{ user: ApiUser }>('/api/auth/register', {
+  return apiFetch<{ ok: boolean; needsEmailVerification: boolean }>('/api/auth/register', {
     method: 'POST',
     body: JSON.stringify({ name, email, password }),
+  })
+}
+
+export function forgotPassword(email: string) {
+  return apiFetch<{ ok: boolean }>('/api/auth/forgot-password', {
+    method: 'POST',
+    body: JSON.stringify({ email }),
+  })
+}
+
+export function resetPassword(token: string, password: string) {
+  return apiFetch<{ ok: boolean }>('/api/auth/reset-password', {
+    method: 'POST',
+    body: JSON.stringify({ token, password }),
+  })
+}
+
+export function resendVerification(email: string) {
+  return apiFetch<{ ok: boolean }>('/api/auth/resend-verification', {
+    method: 'POST',
+    body: JSON.stringify({ email }),
+  })
+}
+
+export function changePassword(currentPassword: string, newPassword: string) {
+  return apiFetch<{ ok: boolean }>('/api/auth/change-password', {
+    method: 'POST',
+    body: JSON.stringify({ currentPassword, newPassword }),
   })
 }
 
@@ -244,12 +273,35 @@ export function getAdminViewTimesheet(userId: string, fortnightEnding: string) {
   }>(`/api/admin/users/${userId}/timesheets/${fortnightEnding}`)
 }
 
+export type EmailLogEntry = {
+  id: number
+  createdUtc: number
+  kind: string
+  toEmail: string
+  subject: string
+  status: 'logged_only' | 'sent' | 'failed'
+  providerMessageId: string | null
+  textBody: string
+  htmlBody: string | null
+  error: string | null
+  userId: string | null
+}
+
+export type AdminEmailConfig = {
+  configured: boolean
+  from: string | null
+  sendMode: 'send' | 'log'
+}
+
 export function getAdminLogs() {
   return apiFetch<{
     loggingAvailable: boolean
     migrationRunUtc: number | null
     migrationResults: SchemaMigrationResult[]
     entries: AppErrorLogEntry[]
+    email: AdminEmailConfig
+    e2eTestHooksEnabled: boolean
+    emailLogs: EmailLogEntry[]
   }>('/api/admin/logs')
 }
 

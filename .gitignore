@@ -20,6 +20,7 @@ dist-ssr
 scripts/excel-spike/output/
 scripts/.resend-domain.json
 api/data/
+api/data-e2e/
 *.local
 
 # Secrets (match aspnet repo)

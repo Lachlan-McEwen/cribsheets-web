@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from 'react'
 import type { TimesheetDocument } from '../../lib/timesheet-export/legacy-types.ts'
 import { formatDateAu } from '../lib/format.ts'
 import { toFortnightParam } from '../lib/fortnight.ts'
+import { timesheetApprovalMailtoUrl } from '../lib/timesheetApprovalMailto.ts'
 import { useToast } from '../feedback/ToastContext.tsx'
 import { useSubmitPhase } from '../feedback/useSubmitPhase.ts'
 import { TimesheetDayRow } from './timesheet/TimesheetDayRow.tsx'
@@ -95,6 +96,8 @@ export function TimesheetForm({
       })
       .finally(() => setGenerateBusy(false))
   }
+
+  const approvalMailto = timesheetApprovalMailtoUrl(document, hasDownload || showDownload)
 
   return (
     <>
@@ -194,6 +197,13 @@ export function TimesheetForm({
                 style={{ display: showDownload ? undefined : 'none' }}
               >
                 Download
+              </a>
+              <a
+                className="btn btn-outline-primary"
+                id="emailApprovalButton"
+                href={approvalMailto}
+              >
+                Email for approval
               </a>
             </div>
           </div>

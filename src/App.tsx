@@ -7,7 +7,11 @@ import { AdminLogsPage } from './pages/admin/AdminLogsPage'
 import { AdminUserDetailPage } from './pages/admin/AdminUserDetailPage'
 import { AdminUsersPage } from './pages/admin/AdminUsersPage'
 import { AdminViewTimesheetPage } from './pages/admin/AdminViewTimesheetPage'
+import { CheckEmailPage } from './pages/CheckEmailPage'
+import { ForgotPasswordPage } from './pages/ForgotPasswordPage'
 import { LoginPage } from './pages/LoginPage'
+import { ResetPasswordPage } from './pages/ResetPasswordPage'
+import { VerifyEmailPage } from './pages/VerifyEmailPage'
 import { ProfilePage } from './pages/ProfilePage'
 import { PrivacyPage } from './pages/PrivacyPage'
 import { RegisterPage } from './pages/RegisterPage'
@@ -19,6 +23,10 @@ export default function App() {
       <Route element={<Layout />}>
         <Route path="login" element={<LoginPage />} />
         <Route path="register" element={<RegisterPage />} />
+        <Route path="check-email" element={<CheckEmailPage />} />
+        <Route path="verify-email" element={<VerifyEmailPage />} />
+        <Route path="forgot-password" element={<ForgotPasswordPage />} />
+        <Route path="reset-password" element={<ResetPasswordPage />} />
         <Route path="privacy" element={<PrivacyPage />} />
         <Route element={<RequireAuth />}>
           <Route index element={<TimesheetPage />} />

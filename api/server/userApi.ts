@@ -4,6 +4,7 @@ import { userHasSignature } from './signatures.js'
 export type ApiUser = UserRow & {
   hasSignature: boolean
   profileIsComplete: boolean
+  emailVerified: boolean
 }
 
 export function profileIsComplete(user: Pick<UserRow, 'name' | 'employeeNumber' | 'unitStation'>, hasSignature: boolean): boolean {
@@ -21,5 +22,6 @@ export function toApiUser(user: UserRow): ApiUser {
     ...user,
     hasSignature,
     profileIsComplete: profileIsComplete(user, hasSignature),
+    emailVerified: user.emailVerifiedAt != null,
   }
 }

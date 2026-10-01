@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom'
 import { useAuth } from '../auth/AuthContext.tsx'
 import { useToast } from '../feedback/ToastContext.tsx'
 import { useSubmitPhase } from '../feedback/useSubmitPhase.ts'
-import { profileSignatureUrl, updateProfile } from '../lib/api.ts'
+import { changePassword, profileSignatureUrl, updateProfile } from '../lib/api.ts'
 import { SHIFT_CODE_OPTIONS } from '../lib/enumLabels.ts'
 import { loadStationNames } from '../lib/stations.ts'
 
@@ -17,6 +17,9 @@ export function ProfilePage() {
   const toast = useToast()
   const { phase: savePhase, start: startSave, succeed: saveSucceeded, fail: saveFailed, label: saveLabel } =
     useSubmitPhase()
+  const [currentPassword, setCurrentPassword] = useState('')
+  const [newPassword, setNewPassword] = useState('')
+  const [passwordBusy, setPasswordBusy] = useState(false)
 
   useEffect(() => {
     void loadStationNames().then(setStations)
@@ -65,6 +68,50 @@ export function ProfilePage() {
 
       <div className="row">
         <div className="col-lg-6 col-xl-5">
+          <div className="form-card mb-4">
+            <h2 className="h5">Change password</h2>
+            <form
+              onSubmit={(e) => {
+                e.preventDefault()
+                setPasswordBusy(true)
+                void changePassword(currentPassword, newPassword)
+                  .then(() => {
+                    toast.success('Password updated.')
+                    setCurrentPassword('')
+                    setNewPassword('')
+                  })
+                  .catch(() => toast.error('Could not update password.'))
+                  .finally(() => setPasswordBusy(false))
+              }}
+            >
+              <div className="form-floating mb-3">
+                <input
+                  type="password"
+                  className="form-control"
+                  id="current-password"
+                  value={currentPassword}
+                  onChange={(e) => setCurrentPassword(e.target.value)}
+                  required
+                />
+                <label htmlFor="current-password">Current password</label>
+              </div>
+              <div className="form-floating mb-3">
+                <input
+                  type="password"
+                  className="form-control"
+                  id="new-password"
+                  value={newPassword}
+                  onChange={(e) => setNewPassword(e.target.value)}
+                  minLength={8}
+                  required
+                />
+                <label htmlFor="new-password">New password</label>
+              </div>
+              <button type="submit" className="btn btn-outline-primary" disabled={passwordBusy}>
+                {passwordBusy ? 'Updating…' : 'Update password'}
+              </button>
+            </form>
+          </div>
           <div className="form-card">
             <form id="form" onSubmit={(e) => void onSubmit(e)}>
               <div className="form-group">
