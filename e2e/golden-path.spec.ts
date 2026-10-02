@@ -1,17 +1,20 @@
 import { expect, test } from '@playwright/test'
 import { loginViaUi, registerViaUi, verifyEmailViaUi } from './helpers/ui-auth'
 import { completeProfileViaUi } from './helpers/ui-profile'
-import {
-  assertExportHasWorkedDayCells,
-  downloadTimesheetExportViaApi,
-  getTimesheetViaApi,
-} from './helpers/timesheet-api'
+import { assertExportHasWorkedDayCells, getTimesheetViaApi } from './helpers/timesheet-api'
 import { clearEmailLogs, uniqueE2eEmail } from './helpers/email-logs'
-import { fillTimesheetDayViaUi, generateTimesheetViaUi, saveTimesheetViaUi } from './helpers/ui-timesheet'
+import {
+  downloadTimesheetViaUi,
+  expectTimesheetApprovalMailtoViaUi,
+  fillTimesheetDayViaUi,
+  generateTimesheetViaUi,
+  saveTimesheetViaUi,
+} from './helpers/ui-timesheet'
 
 const DEFAULT_PASSWORD = 'password123'
 const EMPLOYEE_NUMBER = '1002454'
 const UNIT_STATION = 'BARMERA'
+const MANAGER_EMAIL = 'e2e-manager@example.com'
 
 test.describe('golden path', () => {
   test.describe.configure({ mode: 'serial' })
@@ -34,7 +37,12 @@ test.describe('golden path', () => {
 
     await verifyEmailViaUi(page, request, email)
     await loginViaUi(page, { email, password: DEFAULT_PASSWORD })
-    await completeProfileViaUi(page, { name, employeeNumber: EMPLOYEE_NUMBER, unitStation: UNIT_STATION })
+    await completeProfileViaUi(page, {
+      name,
+      employeeNumber: EMPLOYEE_NUMBER,
+      unitStation: UNIT_STATION,
+      authorisingManagerEmail: MANAGER_EMAIL,
+    })
 
     await fillTimesheetDayViaUi(page, 0, { start: '08:00', end: '16:00' })
     const fortnightEnding = await saveTimesheetViaUi(page)
@@ -46,7 +54,17 @@ test.describe('golden path', () => {
 
     const exportFortnight = await generateTimesheetViaUi(page)
     expect(exportFortnight).toBe(fortnightEnding)
-    const filePath = await downloadTimesheetExportViaApi(page, fortnightEnding)
+
+    await expectTimesheetApprovalMailtoViaUi(page, {
+      employeeName: name,
+      authorisingManagerEmail: MANAGER_EMAIL,
+      fortnightEnding,
+      employeeNumber: EMPLOYEE_NUMBER,
+      unitStation: UNIT_STATION,
+      hasGeneratedSpreadsheet: true,
+    })
+
+    const filePath = await downloadTimesheetViaUi(page)
     await assertExportHasWorkedDayCells(filePath, {
       start: '08:00',
       end: '16:00',

@@ -4,12 +4,14 @@ export type CompleteProfileOpts = {
   name?: string
   employeeNumber?: string
   unitStation?: string
+  authorisingManagerEmail?: string
 }
 
 export async function completeProfileViaUi(page: Page, opts: CompleteProfileOpts = {}) {
   const name = opts.name ?? 'E2E Profile User'
   const employeeNumber = opts.employeeNumber ?? '1002454'
   const unitStation = opts.unitStation ?? 'BARMERA'
+  const authorisingManagerEmail = opts.authorisingManagerEmail
 
   await expect(page.getByRole('heading', { name: 'Profile' })).toBeVisible()
   await expect(page.locator('select[name="unitStation"] option[value="BARMERA"]')).toHaveCount(1, {
@@ -19,6 +21,9 @@ export async function completeProfileViaUi(page: Page, opts: CompleteProfileOpts
   await page.locator('input[name="name"]').fill(name)
   await page.locator('input[name="employeeNumber"]').fill(employeeNumber)
   await page.locator('select[name="unitStation"]').selectOption(unitStation)
+  if (authorisingManagerEmail) {
+    await page.locator('input[name="authorisingManagerEmail"]').fill(authorisingManagerEmail)
+  }
 
   await page.getByRole('button', { name: 'Add new signature' }).click()
   const canvas = page.locator('#signatureCanvas')

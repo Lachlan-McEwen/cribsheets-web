@@ -53,7 +53,12 @@ const MIN_SIGNATURE_PNG =
 
 export async function completeProfileViaApi(
   page: Page,
-  opts: { name: string; employeeNumber?: string; unitStation?: string },
+  opts: {
+    name: string
+    employeeNumber?: string
+    unitStation?: string
+    authorisingManagerEmail?: string
+  },
 ) {
   const res = await page.request.put('/api/profile', {
     data: {
@@ -61,6 +66,9 @@ export async function completeProfileViaApi(
       employeeNumber: opts.employeeNumber ?? '1002454',
       unitStation: opts.unitStation ?? 'BARMERA',
       signatureDataUrl: MIN_SIGNATURE_PNG,
+      ...(opts.authorisingManagerEmail !== undefined
+        ? { authorisingManagerEmail: opts.authorisingManagerEmail }
+        : {}),
     },
   })
   expect(res.ok()).toBeTruthy()

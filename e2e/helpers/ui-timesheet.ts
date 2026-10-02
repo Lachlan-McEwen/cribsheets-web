@@ -1,7 +1,56 @@
 import fs from 'node:fs'
 import os from 'node:os'
 import path from 'node:path'
+import { timesheetExcelFileName } from '../../lib/timesheet-export/excel-file-name.ts'
 import { expect, type Page } from '@playwright/test'
+
+export type ExpectApprovalMailtoOpts = {
+  employeeName: string
+  authorisingManagerEmail?: string
+  fortnightEnding: string
+  employeeNumber: string
+  unitStation: string
+  hasGeneratedSpreadsheet: boolean
+}
+
+function parseMailtoParams(href: string): URLSearchParams {
+  expect(href.startsWith('mailto:?')).toBeTruthy()
+  return new URLSearchParams(href.slice('mailto:?'.length))
+}
+
+export async function expectTimesheetApprovalMailtoViaUi(page: Page, opts: ExpectApprovalMailtoOpts) {
+  const link = page.locator('#emailApprovalButton')
+  await expect(link).toBeVisible()
+  await expect(link).toHaveText('Email for approval')
+
+  const href = await link.getAttribute('href')
+  expect(href).toBeTruthy()
+  const params = parseMailtoParams(href!)
+
+  if (opts.authorisingManagerEmail) {
+    expect(params.get('to')).toBe(opts.authorisingManagerEmail.trim().toLowerCase())
+  }
+
+  const subject = params.get('subject') ?? ''
+  expect(subject).toContain('Timesheet for approval')
+  expect(subject).toContain(opts.employeeName)
+
+  const body = params.get('body') ?? ''
+  if (opts.hasGeneratedSpreadsheet) {
+    const fileName = timesheetExcelFileName(
+      {
+        name: opts.employeeName,
+        employeeNumber: opts.employeeNumber,
+        unitStation: opts.unitStation,
+      },
+      opts.fortnightEnding,
+    )
+    expect(body).toContain(`Please attach the spreadsheet file: ${fileName}`)
+  } else {
+    expect(body).toContain('Generate Timesheet')
+    expect(body).toContain('Download')
+  }
+}
 
 export async function fillTimesheetDayViaUi(
   page: Page,
