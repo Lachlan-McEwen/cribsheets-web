@@ -1,4 +1,5 @@
-import { Link, Outlet, useNavigate } from 'react-router-dom'
+import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom'
+import { isAuthRoute } from '../routes/authPaths.ts'
 import { useAuth } from '../auth/AuthContext.tsx'
 import { getRegistrationOpen } from '../lib/api.ts'
 import { useEffect, useState } from 'react'
@@ -6,6 +7,8 @@ import { useEffect, useState } from 'react'
 export function Layout() {
   const { user, logout, loading } = useAuth()
   const navigate = useNavigate()
+  const location = useLocation()
+  const hideAuthNavLinks = isAuthRoute(location.pathname)
   const [registrationOpen, setRegistrationOpen] = useState(false)
 
   useEffect(() => {
@@ -47,9 +50,9 @@ export function Layout() {
                       </Link>
                     </li>
                     <li className="nav-item">
-                      <a className="nav-link" href="mailto:contact@cribsheets.com.au">
+                      <Link className="nav-link" to="/help">
                         Help
-                      </a>
+                      </Link>
                     </li>
                     {user.isAdmin ? (
                       <li className="nav-item">
@@ -113,7 +116,7 @@ export function Layout() {
                       </li>
                     </ul>
                   </li>
-                ) : (
+                ) : hideAuthNavLinks ? null : (
                   <>
                     {registrationOpen ? (
                       <li className="nav-item">

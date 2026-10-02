@@ -314,6 +314,38 @@ export type AdminEmailConfig = {
   sendMode: 'send' | 'log'
 }
 
+export type SupportRequestRow = {
+  id: string
+  userId: string
+  subject: string
+  message: string
+  status: 'open' | 'closed'
+  createdUtc: number
+  closedUtc: number | null
+  userEmail: string
+  userName: string
+  employeeNumber: string
+  unitStation: string
+}
+
+export function submitSupportRequest(payload: { subject: string; message: string }) {
+  return apiFetch<{ ok: boolean; id: string }>('/api/support', {
+    method: 'POST',
+    body: JSON.stringify(payload),
+  })
+}
+
+export function getAdminSupportRequests() {
+  return apiFetch<{ requests: SupportRequestRow[] }>('/api/admin/support')
+}
+
+export function setAdminSupportRequestStatus(id: string, status: 'open' | 'closed') {
+  return apiFetch<{ request: Pick<SupportRequestRow, 'id' | 'status' | 'closedUtc'> }>(
+    `/api/admin/support/${encodeURIComponent(id)}`,
+    { method: 'POST', body: JSON.stringify({ status }) },
+  )
+}
+
 export function getAdminLogs() {
   return apiFetch<{
     loggingAvailable: boolean

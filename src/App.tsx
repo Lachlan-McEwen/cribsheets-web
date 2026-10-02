@@ -16,7 +16,9 @@ import { ChangePasswordPage } from './pages/ChangePasswordPage'
 import { ProfilePage } from './pages/ProfilePage'
 import { PrivacyPage } from './pages/PrivacyPage'
 import { RegisterPage } from './pages/RegisterPage'
+import { SupportPage } from './pages/SupportPage'
 import { TimesheetPage } from './pages/TimesheetPage'
+import { AdminSupportPage } from './pages/admin/AdminSupportPage'
 
 export default function App() {
   return (
@@ -33,9 +35,11 @@ export default function App() {
           <Route index element={<TimesheetPage />} />
           <Route path="profile" element={<ProfilePage />} />
           <Route path="change-password" element={<ChangePasswordPage />} />
+          <Route path="help" element={<SupportPage />} />
           <Route path="admin" element={<RequireAdmin />}>
             <Route index element={<AdminUsersPage />} />
             <Route path="timesheets" element={<AdminFortnightReportPage />} />
+            <Route path="support" element={<AdminSupportPage />} />
             <Route path="logs" element={<AdminLogsPage />} />
             <Route path="users/:userId" element={<AdminUserDetailPage />} />
             <Route path="users/:userId/timesheets/:fortnightEnding" element={<AdminViewTimesheetPage />} />

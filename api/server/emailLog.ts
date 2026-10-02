@@ -6,6 +6,7 @@ export type EmailLogKind =
   | 'verify_email'
   | 'password_reset'
   | 'admin_test'
+  | 'support_alert'
   | 'generic'
 
 export type EmailLogEntry = {

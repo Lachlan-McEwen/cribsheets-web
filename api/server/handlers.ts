@@ -47,6 +47,14 @@ import {
 import { deliverEmail, emailConfigStatus } from './email.js'
 import { parseOptionalEmail } from './emailFormat.js'
 import { listRecentEmailLogs } from './emailLog.js'
+import { notifyAdminsOfSupportRequest } from './supportNotify.js'
+import {
+  createSupportRequest,
+  findSupportRequest,
+  listSupportRequests,
+  setSupportRequestStatus,
+  type SupportRequestStatus,
+} from './supportRequests.js'
 import { e2eTestHooksEnabled } from './testHooks.js'
 import { isRegistrationAtUserCap, registrationAllowed, registrationMaxUsers } from './register.js'
 import { toApiUser } from './userApi.js'
@@ -551,6 +559,65 @@ export async function tryHandleApi(
       googleFileId: stored.googleFileId,
       document: stored.document,
     })
+    return true
+  }
+
+  if (method === 'POST' && path === '/api/support') {
+    const user = requireUser(getUser, res)
+    if (!user) return true
+    const body = await readJson<{ subject?: string; message?: string }>(req)
+    const subject = body.subject?.trim() ?? ''
+    const message = body.message?.trim() ?? ''
+    if (subject.length < 3 || subject.length > 200) {
+      json(res, 400, { error: 'invalid_subject' })
+      return true
+    }
+    if (message.length < 10 || message.length > 5000) {
+      json(res, 400, { error: 'invalid_message' })
+      return true
+    }
+    const created = createSupportRequest(user.id, subject, message)
+    const withUser = findSupportRequest(created.id)
+    if (withUser) {
+      try {
+        await notifyAdminsOfSupportRequest(withUser)
+      } catch (err) {
+        tryWriteErrorLog({
+          level: 'Warning',
+          category: 'support',
+          message: 'Support request saved but admin email failed',
+          exception: err instanceof Error ? err.stack ?? err.message : String(err),
+          userId: user.id,
+        })
+      }
+    }
+    json(res, 201, { ok: true, id: created.id })
+    return true
+  }
+
+  if (method === 'GET' && path === '/api/admin/support') {
+    const admin = requireAdmin(getUser, res)
+    if (!admin) return true
+    json(res, 200, { requests: listSupportRequests() })
+    return true
+  }
+
+  const adminSupportMatch = /^\/api\/admin\/support\/([^/]+)$/.exec(path)
+  if (adminSupportMatch && method === 'POST') {
+    const admin = requireAdmin(getUser, res)
+    if (!admin) return true
+    const requestId = adminSupportMatch[1]
+    const body = await readJson<{ status?: string }>(req)
+    if (body.status !== 'open' && body.status !== 'closed') {
+      json(res, 400, { error: 'invalid_status' })
+      return true
+    }
+    const updated = setSupportRequestStatus(requestId, body.status as SupportRequestStatus)
+    if (!updated) {
+      json(res, 404, { error: 'not_found' })
+      return true
+    }
+    json(res, 200, { request: updated })
     return true
   }
 

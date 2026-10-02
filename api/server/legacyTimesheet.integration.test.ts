@@ -46,30 +46,24 @@ before(async () => {
   port = 38_000 + Math.floor(Math.random() * 2_000)
   baseUrl = `http://127.0.0.1:${port}`
 
-  child = spawn('npx', ['tsx', 'server/index.ts'], {
+  const tsxCli = path.join(apiRoot, 'node_modules', 'tsx', 'dist', 'cli.mjs')
+  child = spawn(process.execPath, [tsxCli, 'server/index.ts'], {
     cwd: apiRoot,
-    shell: true,
     env: {
       ...process.env,
       PORT: String(port),
       DATA_DIR: dataDir,
       LEGACY_API_SECRET: SECRET,
     },
-    stdio: ['ignore', 'pipe', 'pipe'],
-  })
-
-  child.stderr.on('data', (chunk) => {
-    const text = String(chunk)
-    if (text.includes('Error') || text.includes('EADDRINUSE')) {
-      console.error('[legacy-it api]', text)
-    }
+    stdio: 'ignore',
+    windowsHide: true,
   })
 
   await waitForHealth()
 })
 
 after(() => {
-  child.kill('SIGTERM')
+  if (!child.killed) child.kill('SIGKILL')
 })
 
 describe('legacy timesheet API (integration)', () => {

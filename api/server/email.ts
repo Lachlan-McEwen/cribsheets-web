@@ -7,6 +7,7 @@ export type SendEmailInput = {
   subject: string
   text: string
   html?: string
+  replyTo?: string
 }
 
 export type DeliverEmailMeta = {
@@ -54,7 +55,7 @@ async function sendViaResend(input: SendEmailInput): Promise<{ id: string }> {
   const from = emailFrom()
   if (!from) throw new Error('EMAIL_FROM is not set')
 
-  const replyTo = process.env.EMAIL_REPLY_TO?.trim()
+  const replyTo = input.replyTo?.trim() || process.env.EMAIL_REPLY_TO?.trim()
 
   const { data, error } = await getResend().emails.send({
     from,

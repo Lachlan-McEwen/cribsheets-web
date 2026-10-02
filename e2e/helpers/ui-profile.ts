@@ -25,7 +25,7 @@ export async function completeProfileViaUi(page: Page, opts: CompleteProfileOpts
     await page.locator('input[name="authorisingManagerEmail"]').fill(authorisingManagerEmail)
   }
 
-  await page.getByRole('button', { name: 'Add new signature' }).click()
+  await page.getByRole('button', { name: 'Edit signature' }).click()
   const canvas = page.locator('#signatureCanvas')
   await expect(canvas).toBeVisible()
   const box = await canvas.boundingBox()
@@ -36,10 +36,7 @@ export async function completeProfileViaUi(page: Page, opts: CompleteProfileOpts
   await page.mouse.up()
 
   await page.getByRole('button', { name: 'Save profile' }).click()
-
-  await expect(
-    page.getByText('Complete your profile (including signature) to access the timesheet.'),
-  ).not.toBeVisible({ timeout: 15_000 })
+  await expect(page.getByText('Profile saved.')).toBeVisible({ timeout: 15_000 })
 
   await page.getByRole('link', { name: 'Back to timesheets' }).click()
   await expect(page).toHaveURL('/')

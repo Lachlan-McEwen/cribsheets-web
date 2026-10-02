@@ -23,7 +23,6 @@ export function RegisterPage() {
   }, [])
 
   if (user) return <Navigate to="/" replace />
-  if (open === false) return <Navigate to="/login" replace />
 
   async function onSubmit(e: FormEvent) {
     e.preventDefault()
@@ -43,6 +42,18 @@ export function RegisterPage() {
   }
 
   if (open === null) return <p className="text-muted">Loading…</p>
+
+  if (!open) {
+    return (
+      <>
+        <h1>Register</h1>
+        <p className="text-muted">New registrations are not open at the moment.</p>
+        <p>
+          <Link to="/login">Back to log in</Link>
+        </p>
+      </>
+    )
+  }
 
   return (
     <>
@@ -107,7 +118,7 @@ export function RegisterPage() {
             </button>
           </form>
           <p className="mt-3">
-            <Link to="/login">Back to log in</Link>
+            Already have an account? <Link to="/login">Log in</Link>
           </p>
         </div>
       </div>

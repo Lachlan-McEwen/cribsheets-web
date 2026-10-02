@@ -140,6 +140,17 @@ function migrate(db: Database.Database): void {
       key TEXT PRIMARY KEY,
       value TEXT NOT NULL
     );
+
+    CREATE TABLE IF NOT EXISTS support_requests (
+      id TEXT PRIMARY KEY,
+      user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+      subject TEXT NOT NULL,
+      message TEXT NOT NULL,
+      status TEXT NOT NULL DEFAULT 'open',
+      created_utc INTEGER NOT NULL,
+      closed_utc INTEGER
+    );
+    CREATE INDEX IF NOT EXISTS idx_support_requests_created ON support_requests(created_utc DESC);
   `)
   const backfillDone = db
     .prepare(`SELECT value FROM app_meta WHERE key = 'email_verify_backfill_v1'`)

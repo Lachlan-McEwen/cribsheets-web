@@ -48,6 +48,7 @@ setMigrationResults([
   { migrationId: 'app_error_logs', status: 'Ready', message: 'Application error log available.', exception: null },
   { migrationId: 'email_logs', status: 'Ready', message: 'Outbound email log available.', exception: null },
   { migrationId: 'auth_tokens', status: 'Ready', message: 'Auth email tokens available.', exception: null },
+  { migrationId: 'support_requests', status: 'Ready', message: 'Support requests available.', exception: null },
 ])
 
 const PORT = Number(process.env.PORT) || 3849

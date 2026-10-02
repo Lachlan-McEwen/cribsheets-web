@@ -403,10 +403,24 @@ label {
 
 /* Signature */
 #signatureCanvas {
-    border: 1px solid var(--cs-border);
+    border: none;
     border-radius: var(--cs-radius);
-    max-width: 90vw;
+    max-width: min(500px, calc(100% - 1rem));
+    margin-right: 1rem;
     background: var(--cs-signature-bg);
+    display: block;
+}
+
+#signatureCanvas.signature-canvas-editing {
+    border: 1px solid var(--cs-border);
+    cursor: crosshair;
+}
+
+.signature-canvas-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-top: 0.5rem;
 }
 
 /* Misc */

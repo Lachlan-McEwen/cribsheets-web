@@ -33,6 +33,8 @@ function kindLabel(kind: string): string {
       return 'Password reset'
     case 'admin_test':
       return 'Admin test'
+    case 'support_alert':
+      return 'Support alert'
     default:
       return kind
   }

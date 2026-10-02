@@ -98,14 +98,15 @@ export function LoginPage() {
                   {busy ? 'Signing in…' : 'Log in'}
                 </button>
               </div>
-              {registrationOpen ? (
-                <div className="mt-3">
-                  <Link id="login-register" to="/register" className="w-100 btn btn-lg btn-outline-primary">
-                    Register as a new user
-                  </Link>
-                </div>
-              ) : null}
               <div className="mt-3">
+                {registrationOpen ? (
+                  <p>
+                    Don&apos;t have an account?{' '}
+                    <Link id="login-register" to="/register">
+                      Register
+                    </Link>
+                  </p>
+                ) : null}
                 <p>
                   <Link to="/forgot-password">Forgot password?</Link>
                 </p>
