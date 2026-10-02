@@ -15,10 +15,24 @@ export function uniqueE2eEmail(prefix = 'e2e'): string {
   return `${prefix}-${Date.now()}@example.com`
 }
 
+export async function bootstrapE2eApi(request: APIRequestContext) {
+  const res = await request.post('/api/test/bootstrap', {
+    headers: { 'X-E2E-Secret': E2E_SECRET },
+  })
+  expect(res.ok(), 'e2e bootstrap failed — is the API running with E2E_TEST_HOOKS=true?').toBeTruthy()
+}
+
 export async function clearEmailLogs(request: APIRequestContext) {
   await request.delete('/api/test/email-logs', {
     headers: { 'X-E2E-Secret': E2E_SECRET },
   })
+}
+
+export async function purgeE2eUsers(request: APIRequestContext) {
+  const res = await request.delete('/api/test/e2e-users', {
+    headers: { 'X-E2E-Secret': E2E_SECRET },
+  })
+  expect(res.ok()).toBeTruthy()
 }
 
 export async function fetchEmailLogs(request: APIRequestContext, limit = 20): Promise<EmailLog[]> {

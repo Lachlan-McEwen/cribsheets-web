@@ -346,6 +346,22 @@ export function findUserById(userId: string): UserRow | null {
   return row ? rowToUser(row) : null
 }
 
+const LEGACY_STUB_EMAIL_SUFFIX = '@legacy-import.invalid'
+
+/** Placeholder user row so legacy Identity IDs can own timesheets before profile import. */
+export function ensureStubUserForTimesheet(userId: string): void {
+  if (findUserById(userId)) return
+  const db = getDb()
+  const now = Date.now()
+  const email = `${userId.toLowerCase()}${LEGACY_STUB_EMAIL_SUFFIX}`
+  db.prepare(
+    `INSERT INTO users (
+      id, email, password_hash, name, employee_number, unit_station,
+      casual, is_country_employee, is_admin, created_at, email_verified_at
+    ) VALUES (?, ?, ?, '', '', '', 0, 0, 0, ?, NULL)`,
+  ).run(userId, email, hashPassword(randomBytes(32).toString('base64')), now)
+}
+
 export function listUsers(): UserRow[] {
   const rows = getDb()
     .prepare(`SELECT ${USER_SELECT} FROM users u ORDER BY u.email COLLATE NOCASE`)

@@ -7,6 +7,7 @@ import {
   deleteSession,
   findUserByEmail,
   getDb,
+  setRegistrationOpenSetting,
   userForSession,
   verifyPassword,
 } from './db.js'
@@ -21,6 +22,8 @@ import {
   handleVerifyEmail,
 } from './authHandlers.js'
 import { logRequestError, tryHandleApi } from './handlers.js'
+import { legacyApiEnabled } from './legacyApiAuth.js'
+import { tryHandleLegacyApi } from './legacyHandlers.js'
 import { json } from './httpUtil.js'
 import { completeRegistration, registrationAllowed, registerUser, validateRegisterInput } from './register.js'
 import { tryHandleTestHooks } from './testHooks.js'
@@ -32,6 +35,12 @@ ensureBootstrapAdmin()
 ensureBootstrapDevUser()
 
 getDb()
+const allowRegistration = process.env.ALLOW_REGISTRATION?.trim().toLowerCase()
+if (allowRegistration === 'true') {
+  setRegistrationOpenSetting(true)
+} else if (allowRegistration === 'false') {
+  setRegistrationOpenSetting(false)
+}
 setLoggingAvailable(true)
 setMigrationResults([
   { migrationId: 'users', status: 'Ready', message: 'Users and sessions tables available.', exception: null },
@@ -49,7 +58,7 @@ function applyCors(req: http.IncomingMessage, res: http.ServerResponse): boolean
   res.setHeader('Access-Control-Allow-Origin', CLIENT_ORIGIN)
   res.setHeader('Access-Control-Allow-Credentials', 'true')
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS')
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type')
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Legacy-User-Id')
   if (req.method === 'OPTIONS') {
     res.writeHead(204)
     res.end()
@@ -81,7 +90,12 @@ const server = http.createServer(async (req, res) => {
 
   try {
     if (req.method === 'GET' && path === '/api/health') {
-      json(res, 200, { ok: true, staticUi: hasStaticUi(), email: emailConfigStatus() })
+      json(res, 200, {
+        ok: true,
+        staticUi: hasStaticUi(),
+        email: emailConfigStatus(),
+        legacyApi: legacyApiEnabled(),
+      })
       return
     }
 
@@ -184,6 +198,8 @@ const server = http.createServer(async (req, res) => {
     }
 
     if (tryHandleTestHooks(req, res, path, req.method ?? 'GET')) return
+
+    if (await tryHandleLegacyApi(req, res, url)) return
 
     if (await tryHandleApi(req, res, url, getUser)) return
 

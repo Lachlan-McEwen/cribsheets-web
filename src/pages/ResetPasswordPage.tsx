@@ -9,12 +9,17 @@ export function ResetPasswordPage() {
   const navigate = useNavigate()
   const toast = useToast()
   const [password, setPassword] = useState('')
+  const [confirmPassword, setConfirmPassword] = useState('')
   const [busy, setBusy] = useState(false)
 
   async function onSubmit(e: FormEvent) {
     e.preventDefault()
     if (!token) {
       toast.error('Missing reset token.')
+      return
+    }
+    if (password !== confirmPassword) {
+      toast.error('Passwords do not match.')
       return
     }
     setBusy(true)
@@ -53,9 +58,23 @@ export function ResetPasswordPage() {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 minLength={8}
+                autoComplete="new-password"
                 required
               />
               <label htmlFor="new-password">New password</label>
+            </div>
+            <div className="form-floating mb-3">
+              <input
+                type="password"
+                className="form-control"
+                id="confirm-new-password"
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                minLength={8}
+                autoComplete="new-password"
+                required
+              />
+              <label htmlFor="confirm-new-password">Confirm new password</label>
             </div>
             <button type="submit" className="w-100 btn btn-primary" disabled={busy}>
               {busy ? 'Saving…' : 'Set new password'}

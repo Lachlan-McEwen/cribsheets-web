@@ -9,7 +9,8 @@
   "scripts": {
     "dev": "tsx watch server/index.ts",
     "start": "tsx server/index.ts",
-    "seed:admin": "tsx server/seedAdmin.ts"
+    "seed:admin": "tsx server/seedAdmin.ts",
+    "test:integration": "node --import tsx --test server/legacyTimesheet.integration.test.ts"
   },
   "dependencies": {
     "adm-zip": "^0.5.16",

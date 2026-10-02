@@ -21,8 +21,17 @@ export type StoredTimesheetPayload = {
   document: Record<string, unknown>
 }
 
+export type SaveTimesheetOptions = {
+  ifUnmodifiedSince?: number | null
+  clearOutput?: boolean
+  googleFileId?: string | null
+  outputFileName?: string | null
+  /** Legacy MVC: no write when server lastUpdated >= this value (ms). */
+  onlyIfServerLastUpdatedBefore?: number | null
+}
+
 export type SaveTimesheetResult =
-  | { ok: true; payload: StoredTimesheetPayload }
+  | { ok: true; payload: StoredTimesheetPayload; skipped?: boolean }
   | { ok: false; reason: 'conflict'; serverLastUpdated: number }
 
 function parsePayload(json: string): StoredTimesheetPayload | null {
@@ -85,9 +94,15 @@ export function saveTimesheet(
   userId: string,
   fortnightEnding: string,
   document: Record<string, unknown>,
-  options?: { ifUnmodifiedSince?: number | null; clearOutput?: boolean },
+  options?: SaveTimesheetOptions,
 ): SaveTimesheetResult {
   const existing = getTimesheet(userId, fortnightEnding)
+
+  if (existing && options?.onlyIfServerLastUpdatedBefore != null) {
+    if (existing.lastUpdated >= options.onlyIfServerLastUpdatedBefore) {
+      return { ok: true, payload: existing, skipped: true }
+    }
+  }
 
   if (existing && options?.ifUnmodifiedSince != null) {
     if (existing.lastUpdated !== options.ifUnmodifiedSince) {
@@ -95,10 +110,18 @@ export function saveTimesheet(
     }
   }
 
+  const googleFileId =
+    options?.googleFileId !== undefined ? options.googleFileId : (existing?.googleFileId ?? null)
+  let outputFileName = options?.clearOutput
+    ? null
+    : options?.outputFileName !== undefined
+      ? options.outputFileName
+      : (existing?.outputFileName ?? null)
+
   const payload: StoredTimesheetPayload = {
     lastUpdated: Date.now(),
-    googleFileId: existing?.googleFileId ?? null,
-    outputFileName: options?.clearOutput ? null : (existing?.outputFileName ?? null),
+    googleFileId,
+    outputFileName,
     document,
   }
   writePayload(userId, fortnightEnding, payload)

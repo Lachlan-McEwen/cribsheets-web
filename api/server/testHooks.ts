@@ -1,6 +1,21 @@
 import type http from 'node:http'
+import { deleteUserAccount, listUsers, setRegistrationOpenSetting } from './db.js'
 import { clearEmailLogs, listRecentEmailLogs } from './emailLog.js'
 import { json } from './httpUtil.js'
+import { deleteSignature } from './signatures.js'
+
+const E2E_USER_EMAIL_RE = /^e2e-.*@example\.com$/i
+
+export function purgeE2eFixtureUsers(): number {
+  let removed = 0
+  for (const user of listUsers()) {
+    if (!E2E_USER_EMAIL_RE.test(user.email)) continue
+    deleteSignature(user.id)
+    deleteUserAccount(user.id)
+    removed += 1
+  }
+  return removed
+}
 
 export function e2eTestHooksEnabled(): boolean {
   return process.env.E2E_TEST_HOOKS === 'true' && Boolean(process.env.E2E_TEST_SECRET?.trim())
@@ -37,6 +52,19 @@ export function tryHandleTestHooks(
   if (method === 'DELETE' && path === '/api/test/email-logs') {
     clearEmailLogs()
     json(res, 200, { ok: true })
+    return true
+  }
+
+  if (method === 'DELETE' && path === '/api/test/e2e-users') {
+    const removed = purgeE2eFixtureUsers()
+    clearEmailLogs()
+    json(res, 200, { ok: true, removed })
+    return true
+  }
+
+  if (method === 'POST' && path === '/api/test/bootstrap') {
+    setRegistrationOpenSetting(true)
+    json(res, 200, { ok: true, registrationOpen: true })
     return true
   }
 

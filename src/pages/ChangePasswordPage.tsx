@@ -9,18 +9,24 @@ export function ChangePasswordPage() {
   const toast = useToast()
   const [currentPassword, setCurrentPassword] = useState('')
   const [newPassword, setNewPassword] = useState('')
+  const [confirmNewPassword, setConfirmNewPassword] = useState('')
   const [busy, setBusy] = useState(false)
 
   if (!user) return null
 
   async function onSubmit(e: FormEvent) {
     e.preventDefault()
+    if (newPassword !== confirmNewPassword) {
+      toast.error('Passwords do not match.')
+      return
+    }
     setBusy(true)
     try {
       await changePassword(currentPassword, newPassword)
       toast.success('Password updated.')
       setCurrentPassword('')
       setNewPassword('')
+      setConfirmNewPassword('')
     } catch {
       toast.error('Could not update password.')
     } finally {
@@ -63,6 +69,19 @@ export function ChangePasswordPage() {
                   required
                 />
                 <label htmlFor="new-password">New password</label>
+              </div>
+              <div className="form-floating mb-3">
+                <input
+                  type="password"
+                  className="form-control"
+                  id="confirm-new-password"
+                  value={confirmNewPassword}
+                  onChange={(e) => setConfirmNewPassword(e.target.value)}
+                  autoComplete="new-password"
+                  minLength={8}
+                  required
+                />
+                <label htmlFor="confirm-new-password">Confirm new password</label>
               </div>
               <button type="submit" className="btn btn-primary" disabled={busy}>
                 {busy ? 'Updating…' : 'Update password'}
