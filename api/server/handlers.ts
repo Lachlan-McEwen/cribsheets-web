@@ -94,7 +94,7 @@ function sendPng(res: http.ServerResponse, filePath: string): boolean {
   const data = fs.readFileSync(filePath)
   res.writeHead(200, {
     'Content-Type': 'image/png',
-    'Cache-Control': 'private, max-age=3600',
+    'Cache-Control': 'private, no-store',
   })
   res.end(data)
   return true

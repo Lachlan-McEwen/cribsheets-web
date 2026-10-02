@@ -496,6 +496,10 @@ label {
     background: var(--cs-signature-bg);
 }
 
+.profile-signature-preview {
+    border: none;
+}
+
 /* Admin — appearance picker */
 .theme-picker-grid {
     display: grid;

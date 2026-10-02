@@ -11,16 +11,30 @@ function RequiredMark() {
   return <span className="text-danger" aria-hidden="true"> *</span>
 }
 
+const SIGNATURE_CANVAS_W = 500
+const SIGNATURE_CANVAS_H = 250
+
+function canvasPoint(canvas: HTMLCanvasElement, clientX: number, clientY: number) {
+  const rect = canvas.getBoundingClientRect()
+  const scaleX = canvas.width / rect.width
+  const scaleY = canvas.height / rect.height
+  return {
+    x: (clientX - rect.left) * scaleX,
+    y: (clientY - rect.top) * scaleY,
+  }
+}
+
 export function ProfilePage() {
   const { user, refresh } = useAuth()
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const [stations, setStations] = useState<string[]>([''])
   const [unitStation, setUnitStation] = useState('')
-  const [showCanvas, setShowCanvas] = useState(false)
   const [signatureEditing, setSignatureEditing] = useState(false)
+  const [signatureDraftPreview, setSignatureDraftPreview] = useState<string | null>(null)
   const [drawing, setDrawing] = useState(false)
   const [signatureTouched, setSignatureTouched] = useState(false)
   const [signatureError, setSignatureError] = useState(false)
+  const [signatureSavedAt, setSignatureSavedAt] = useState(0)
   const toast = useToast()
   const { phase: savePhase, start: startSave, succeed: saveSucceeded, fail: saveFailed, label: saveLabel } =
     useSubmitPhase()
@@ -36,14 +50,32 @@ export function ProfilePage() {
 
   const stationsReady = stations.length > 1
 
+  const serverSignatureSrc =
+    user.hasSignature
+      ? `${profileSignatureUrl()}${signatureSavedAt ? `?v=${signatureSavedAt}` : ''}`
+      : null
+  const signaturePreviewSrc =
+    !signatureEditing && (signatureDraftPreview ?? serverSignatureSrc)
+
+  function finishSignatureEdit() {
+    setSignatureEditing(false)
+    if (signatureTouched && canvasRef.current) {
+      setSignatureDraftPreview(canvasRef.current.toDataURL('image/png'))
+      return
+    }
+    if (!signatureTouched && !user.hasSignature) {
+      setSignatureDraftPreview(null)
+    }
+  }
+
   async function onSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault()
     const fd = new FormData(e.currentTarget)
-    let signatureDataUrl: string | null = null
-    if (showCanvas && signatureTouched && canvasRef.current) {
+    let signatureDataUrl: string | null = signatureDraftPreview
+    if (!signatureDataUrl && signatureTouched && canvasRef.current) {
       signatureDataUrl = canvasRef.current.toDataURL('image/png')
     }
-    const signatureOk = user.hasSignature || signatureDataUrl != null
+    const signatureOk = user.hasSignature || signatureDraftPreview != null || signatureTouched
     if (!signatureOk) {
       setSignatureError(true)
       return
@@ -65,10 +97,11 @@ export function ProfilePage() {
         signatureDataUrl,
       })
       await refresh()
+      if (signatureDataUrl) setSignatureSavedAt(Date.now())
       saveSucceeded()
       toast.success('Profile saved.')
-      setShowCanvas(false)
       setSignatureEditing(false)
+      setSignatureDraftPreview(null)
       setSignatureTouched(false)
     } catch (err) {
       saveFailed()
@@ -219,9 +252,13 @@ export function ProfilePage() {
                   <RequiredMark />
                 </span>
                 <br />
-                {user.hasSignature && !showCanvas ? (
+                {signaturePreviewSrc ? (
                   <div className="mb-2">
-                    <img src={profileSignatureUrl()} alt="Current signature" className="admin-signature-preview" />
+                    <img
+                      src={signaturePreviewSrc}
+                      alt="Current signature"
+                      className="admin-signature-preview profile-signature-preview"
+                    />
                   </div>
                 ) : null}
                 {!signatureEditing ? (
@@ -232,7 +269,9 @@ export function ProfilePage() {
                       signatureError ? 'profile-signature-label profile-signature-error' : 'profile-signature-label'
                     }
                     onClick={() => {
-                      setShowCanvas(true)
+                      const ctx = canvasRef.current?.getContext('2d')
+                      ctx?.clearRect(0, 0, SIGNATURE_CANVAS_W, SIGNATURE_CANVAS_H)
+                      setSignatureTouched(false)
                       setSignatureEditing(true)
                       setSignatureError(false)
                     }}
@@ -246,33 +285,39 @@ export function ProfilePage() {
                   </p>
                 ) : null}
                 <br />
-                <div className={`collapse date${showCanvas ? ' show' : ''}`}>
+                <div className={`collapse date${signatureEditing ? ' show' : ''}`}>
                   <canvas
                     id="signatureCanvas"
                     ref={canvasRef}
-                    className={signatureEditing ? 'signature-canvas-editing' : undefined}
-                    width={500}
-                    height={250}
+                    className="signature-canvas-editing"
+                    width={SIGNATURE_CANVAS_W}
+                    height={SIGNATURE_CANVAS_H}
                     aria-labelledby="profile-signature-label"
-                    onMouseDown={(e) => {
-                      if (!signatureEditing) return
+                    style={{ touchAction: 'none' }}
+                    onPointerDown={(e) => {
+                      if (!signatureEditing || !canvasRef.current) return
+                      e.preventDefault()
+                      canvasRef.current.setPointerCapture(e.pointerId)
                       setSignatureError(false)
                       setSignatureTouched(true)
                       setDrawing(true)
-                      const ctx = canvasRef.current?.getContext('2d')
-                      if (!ctx || !canvasRef.current) return
-                      const rect = canvasRef.current.getBoundingClientRect()
+                      const ctx = canvasRef.current.getContext('2d')
+                      if (!ctx) return
+                      const { x, y } = canvasPoint(canvasRef.current, e.clientX, e.clientY)
                       ctx.beginPath()
-                      ctx.moveTo(e.clientX - rect.left, e.clientY - rect.top)
+                      ctx.moveTo(x, y)
                     }}
-                    onMouseUp={() => setDrawing(false)}
-                    onMouseLeave={() => setDrawing(false)}
-                    onMouseMove={(e) => {
+                    onPointerUp={(e) => {
+                      canvasRef.current?.releasePointerCapture(e.pointerId)
+                      setDrawing(false)
+                    }}
+                    onPointerLeave={() => setDrawing(false)}
+                    onPointerMove={(e) => {
                       if (!signatureEditing || !drawing || !canvasRef.current) return
                       const ctx = canvasRef.current.getContext('2d')
                       if (!ctx) return
-                      const rect = canvasRef.current.getBoundingClientRect()
-                      ctx.lineTo(e.clientX - rect.left, e.clientY - rect.top)
+                      const { x, y } = canvasPoint(canvasRef.current, e.clientX, e.clientY)
+                      ctx.lineTo(x, y)
                       ctx.strokeStyle = 'black'
                       ctx.lineWidth = 2
                       ctx.stroke()
@@ -285,7 +330,7 @@ export function ProfilePage() {
                         type="button"
                         onClick={() => {
                           const ctx = canvasRef.current?.getContext('2d')
-                          ctx?.clearRect(0, 0, 500, 250)
+                          ctx?.clearRect(0, 0, SIGNATURE_CANVAS_W, SIGNATURE_CANVAS_H)
                           setSignatureTouched(false)
                         }}
                       >
@@ -294,7 +339,7 @@ export function ProfilePage() {
                       <button
                         className="btn btn-outline-secondary"
                         type="button"
-                        onClick={() => setSignatureEditing(false)}
+                        onClick={() => finishSignatureEdit()}
                       >
                         Done
                       </button>
