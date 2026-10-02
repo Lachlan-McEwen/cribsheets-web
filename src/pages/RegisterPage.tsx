@@ -11,6 +11,7 @@ export function RegisterPage() {
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [confirmPassword, setConfirmPassword] = useState('')
   const toast = useToast()
   const [busy, setBusy] = useState(false)
   const [open, setOpen] = useState<boolean | null>(null)
@@ -26,6 +27,10 @@ export function RegisterPage() {
 
   async function onSubmit(e: FormEvent) {
     e.preventDefault()
+    if (password !== confirmPassword) {
+      toast.error('Passwords do not match.')
+      return
+    }
     setBusy(true)
     try {
       await register(name, email, password)
@@ -78,9 +83,24 @@ export function RegisterPage() {
                 onChange={(e) => setPassword(e.target.value)}
                 minLength={8}
                 placeholder="password"
+                autoComplete="new-password"
                 required
               />
               <label htmlFor="reg-password">Password</label>
+            </div>
+            <div className="form-floating mb-3">
+              <input
+                type="password"
+                className="form-control"
+                id="reg-confirm-password"
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                minLength={8}
+                placeholder="password"
+                autoComplete="new-password"
+                required
+              />
+              <label htmlFor="reg-confirm-password">Confirm password</label>
             </div>
             <button type="submit" className="w-100 btn btn-lg btn-primary" disabled={busy}>
               {busy ? 'Creating account…' : 'Register'}

@@ -57,6 +57,18 @@ body {
     color: #fff;
 }
 
+.site-navbar .profile-menu-toggle {
+    border: none;
+    background: transparent;
+    width: 2.5rem;
+    height: 2.5rem;
+    padding: 0;
+}
+
+.site-navbar .profile-menu-toggle::after {
+    display: none;
+}
+
 /* Layout */
 .page-container {
     padding-top: 2rem;

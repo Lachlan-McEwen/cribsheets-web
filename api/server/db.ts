@@ -50,6 +50,8 @@ export function getDb(): Database.Database {
   return db
 }
 
+export const REGISTRATION_OPEN_META_KEY = 'registration_open'
+
 function ensureColumn(db: Database.Database, table: string, column: string, definition: string): void {
   const cols = db.prepare(`PRAGMA table_info(${table})`).all() as { name: string }[]
   if (!cols.some((c) => c.name === column)) {
@@ -146,6 +148,38 @@ function migrate(db: Database.Database): void {
     db.prepare(`UPDATE users SET email_verified_at = created_at WHERE email_verified_at IS NULL`).run()
     db.prepare(`INSERT INTO app_meta (key, value) VALUES ('email_verify_backfill_v1', '1')`).run()
   }
+
+  const registrationMeta = db
+    .prepare(`SELECT value FROM app_meta WHERE key = ?`)
+    .get(REGISTRATION_OPEN_META_KEY) as { value: string } | undefined
+  if (!registrationMeta) {
+    const initial = process.env.ALLOW_REGISTRATION === 'true' ? '1' : '0'
+    db.prepare(`INSERT INTO app_meta (key, value) VALUES (?, ?)`).run(REGISTRATION_OPEN_META_KEY, initial)
+  }
+}
+
+export function getAppMeta(key: string): string | null {
+  const row = getDb()
+    .prepare(`SELECT value FROM app_meta WHERE key = ?`)
+    .get(key) as { value: string } | undefined
+  return row?.value ?? null
+}
+
+export function setAppMeta(key: string, value: string): void {
+  getDb()
+    .prepare(
+      `INSERT INTO app_meta (key, value) VALUES (?, ?)
+       ON CONFLICT(key) DO UPDATE SET value = excluded.value`,
+    )
+    .run(key, value)
+}
+
+export function getRegistrationOpenSetting(): boolean {
+  return getAppMeta(REGISTRATION_OPEN_META_KEY) === '1'
+}
+
+export function setRegistrationOpenSetting(open: boolean): void {
+  setAppMeta(REGISTRATION_OPEN_META_KEY, open ? '1' : '0')
 }
 
 const USER_SELECT = `u.id, u.email, u.name, u.is_admin AS isAdmin,

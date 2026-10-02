@@ -2,9 +2,12 @@ import fs from 'node:fs'
 import type http from 'node:http'
 import {
   countAdmins,
+  countUsers,
   deleteUserAccount,
   findUserById,
+  getRegistrationOpenSetting,
   listUsers,
+  setRegistrationOpenSetting,
   setUserAdminById,
   updateUserProfile,
   type UserRow,
@@ -45,7 +48,19 @@ import { deliverEmail, emailConfigStatus } from './email.js'
 import { parseOptionalEmail } from './emailFormat.js'
 import { listRecentEmailLogs } from './emailLog.js'
 import { e2eTestHooksEnabled } from './testHooks.js'
+import { isRegistrationAtUserCap, registrationAllowed, registrationMaxUsers } from './register.js'
 import { toApiUser } from './userApi.js'
+
+function adminRegistrationPayload() {
+  const max = registrationMaxUsers()
+  return {
+    open: getRegistrationOpenSetting(),
+    acceptingSignups: registrationAllowed(),
+    userCount: countUsers(),
+    maxUsers: Number.isFinite(max) && max > 0 ? max : null,
+    atUserCap: isRegistrationAtUserCap(),
+  }
+}
 
 function requireUser(getUser: () => UserRow | null, res: http.ServerResponse): UserRow | null {
   const user = getUser()
@@ -321,6 +336,25 @@ export async function tryHandleApi(
         hasOutput: false,
         document: saved.payload.document,
       })
+      return true
+    }
+  }
+
+  if (path === '/api/admin/registration') {
+    const admin = requireAdmin(getUser, res)
+    if (!admin) return true
+    if (method === 'GET') {
+      json(res, 200, adminRegistrationPayload())
+      return true
+    }
+    if (method === 'POST') {
+      const body = await readJson<{ open?: boolean }>(req)
+      if (typeof body.open !== 'boolean') {
+        json(res, 400, { error: 'open_required' })
+        return true
+      }
+      setRegistrationOpenSetting(body.open)
+      json(res, 200, adminRegistrationPayload())
       return true
     }
   }

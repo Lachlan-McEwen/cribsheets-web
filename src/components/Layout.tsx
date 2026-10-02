@@ -47,11 +47,6 @@ export function Layout() {
                       </Link>
                     </li>
                     <li className="nav-item">
-                      <Link className="nav-link" to="/profile">
-                        Profile
-                      </Link>
-                    </li>
-                    <li className="nav-item">
                       <a className="nav-link" href="mailto:contact@cribsheets.com.au">
                         Help
                       </a>
@@ -68,14 +63,55 @@ export function Layout() {
               </ul>
               <ul className="navbar-nav">
                 {loading ? null : user ? (
-                  <li className="nav-item">
+                  <li className="nav-item dropdown">
                     <button
                       type="button"
-                      className="nav-link btn btn-link"
-                      onClick={() => void logout().then(() => navigate('/login'))}
+                      className="nav-link profile-menu-toggle d-flex align-items-center justify-content-center"
+                      id="userMenu"
+                      data-bs-toggle="dropdown"
+                      aria-expanded="false"
+                      aria-label="Account menu"
                     >
-                      Logout
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        width="22"
+                        height="22"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        aria-hidden
+                      >
+                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+                        <circle cx="12" cy="7" r="4" />
+                      </svg>
                     </button>
+                    <ul className="dropdown-menu dropdown-menu-end shadow" aria-labelledby="userMenu">
+                      <li>
+                        <Link className="dropdown-item" to="/profile">
+                          Profile
+                        </Link>
+                      </li>
+                      <li>
+                        <Link className="dropdown-item" to="/change-password">
+                          Change password
+                        </Link>
+                      </li>
+                      <li>
+                        <hr className="dropdown-divider" />
+                      </li>
+                      <li>
+                        <button
+                          type="button"
+                          className="dropdown-item"
+                          onClick={() => void logout().then(() => navigate('/login'))}
+                        >
+                          Logout
+                        </button>
+                      </li>
+                    </ul>
                   </li>
                 ) : (
                   <>

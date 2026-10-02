@@ -239,6 +239,25 @@ export function timesheetExportUrl(fortnightEnding: string): string {
   return `/api/timesheets/${fortnightEnding}/export`
 }
 
+export type AdminRegistrationSettings = {
+  open: boolean
+  acceptingSignups: boolean
+  userCount: number
+  maxUsers: number | null
+  atUserCap: boolean
+}
+
+export function getAdminRegistration() {
+  return apiFetch<AdminRegistrationSettings>('/api/admin/registration')
+}
+
+export function setAdminRegistration(open: boolean) {
+  return apiFetch<AdminRegistrationSettings>('/api/admin/registration', {
+    method: 'POST',
+    body: JSON.stringify({ open }),
+  })
+}
+
 export function getAdminUsers(search?: string) {
   const q = search?.trim() ? `?search=${encodeURIComponent(search.trim())}` : ''
   return apiFetch<{ users: AdminUserRow[] }>(`/api/admin/users${q}`)

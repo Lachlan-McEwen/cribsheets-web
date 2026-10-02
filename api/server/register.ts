@@ -1,5 +1,5 @@
 import { sendVerificationForNewUser } from './authHandlers.js'
-import { countUsers, createUser, findUserByEmail } from './db.js'
+import { countUsers, createUser, findUserByEmail, getRegistrationOpenSetting } from './db.js'
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 export const MIN_PASSWORD_LENGTH = 8
@@ -16,10 +16,18 @@ export type RegisterError =
   | 'name_required'
   | 'name_too_long'
 
+export function registrationMaxUsers(): number {
+  return Number.parseInt(process.env.MAX_USERS ?? '200', 10)
+}
+
+export function isRegistrationAtUserCap(): boolean {
+  const max = registrationMaxUsers()
+  return Number.isFinite(max) && max > 0 && countUsers() >= max
+}
+
 export function registrationAllowed(): boolean {
-  if (process.env.ALLOW_REGISTRATION !== 'true') return false
-  const max = Number.parseInt(process.env.MAX_USERS ?? '200', 10)
-  if (Number.isFinite(max) && max > 0 && countUsers() >= max) return false
+  if (!getRegistrationOpenSetting()) return false
+  if (isRegistrationAtUserCap()) return false
   return true
 }
 
@@ -41,8 +49,11 @@ export function validateRegisterInput(body: {
 export function registerUser(
   input: RegisterInput,
 ): { ok: true; userId: string } | { ok: false; error: RegisterError } {
-  if (!registrationAllowed()) {
+  if (!getRegistrationOpenSetting()) {
     return { ok: false, error: 'registration_closed' }
+  }
+  if (isRegistrationAtUserCap()) {
+    return { ok: false, error: 'registration_full' }
   }
   if (findUserByEmail(input.email)) {
     return { ok: false, error: 'email_taken' }

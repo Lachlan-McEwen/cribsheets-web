@@ -12,7 +12,8 @@ export async function registerViaUi(
   await page.goto('/register')
   await page.getByLabel('Name').fill(name)
   await page.getByLabel('Email').fill(email)
-  await page.getByLabel('Password').fill(password)
+  await page.getByLabel('Password', { exact: true }).fill(password)
+  await page.getByLabel('Confirm password').fill(password)
   await page.getByRole('button', { name: 'Register' }).click()
 
   await expect(page).toHaveURL(`/check-email?email=${encodeURIComponent(email)}`)
@@ -45,7 +46,7 @@ export async function loginViaUi(page: Page, opts: { email: string; password: st
   await page.getByRole('button', { name: 'Log in' }).click()
 
   await expect(page).not.toHaveURL(/\/login$/)
-  await expect(page.getByRole('button', { name: 'Logout' })).toBeVisible()
+  await expect(page.getByRole('button', { name: 'Account menu' })).toBeVisible()
   await expect(page).toHaveURL(/\/profile/)
   await expect(page.getByRole('heading', { name: 'Profile' })).toBeVisible()
 }

@@ -6,8 +6,11 @@ import { useToast } from '../../feedback/ToastContext.tsx'
 import {
   adminErrorMessage,
   deleteAdminUser,
+  getAdminRegistration,
   getAdminUsers,
+  setAdminRegistration,
   setAdminUser,
+  type AdminRegistrationSettings,
   type AdminUserRow,
 } from '../../lib/api.ts'
 
@@ -16,14 +19,17 @@ export function AdminUsersPage() {
   const search = searchParams.get('search') ?? ''
   const toast = useToast()
   const [users, setUsers] = useState<AdminUserRow[]>([])
+  const [registration, setRegistration] = useState<AdminRegistrationSettings | null>(null)
+  const [registrationSaving, setRegistrationSaving] = useState(false)
   const [loadError, setLoadError] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
 
   const load = () => {
     setLoading(true)
-    void getAdminUsers(search)
-      .then((r) => {
-        setUsers(r.users)
+    void Promise.all([getAdminUsers(search), getAdminRegistration()])
+      .then(([usersRes, regRes]) => {
+        setUsers(usersRes.users)
+        setRegistration(regRes)
         setLoadError(null)
       })
       .catch((e) => setLoadError(e instanceof Error ? e.message : 'Failed to load users'))
@@ -33,6 +39,19 @@ export function AdminUsersPage() {
   useEffect(() => {
     load()
   }, [search])
+
+  async function onRegistrationToggle(open: boolean) {
+    setRegistrationSaving(true)
+    try {
+      const next = await setAdminRegistration(open)
+      setRegistration(next)
+      toast.success(open ? 'Registration is open.' : 'Registration is closed.')
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : 'Failed to update registration.')
+    } finally {
+      setRegistrationSaving(false)
+    }
+  }
 
   async function onSetAdmin(userId: string, isAdmin: boolean) {
     try {
@@ -65,6 +84,37 @@ export function AdminUsersPage() {
       </div>
       <AdminNav />
       {loadError ? <PageAlert variant="danger">{loadError}</PageAlert> : null}
+      {registration ? (
+        <div className="form-card mb-4 p-3">
+          <div className="d-flex flex-wrap justify-content-between align-items-start gap-3">
+            <div>
+              <h2 className="h6 mb-1">Registration</h2>
+              <p className="text-muted small mb-0">
+                {registration.userCount}
+                {registration.maxUsers != null ? ` / ${registration.maxUsers}` : ''} users
+                {registration.open && registration.atUserCap
+                  ? ' — cap reached; sign-up stays hidden until you raise MAX_USERS or remove accounts.'
+                  : null}
+              </p>
+            </div>
+            <div className="form-check form-switch mb-0">
+              <input
+                className="form-check-input"
+                type="checkbox"
+                role="switch"
+                id="adminRegistrationOpen"
+                checked={registration.open}
+                disabled={registrationSaving || loading}
+                onChange={(e) => void onRegistrationToggle(e.target.checked)}
+              />
+              <label className="form-check-label" htmlFor="adminRegistrationOpen">
+                {registration.open ? 'Open' : 'Closed'}
+                {registration.open && !registration.acceptingSignups ? ' (at user cap)' : ''}
+              </label>
+            </div>
+          </div>
+        </div>
+      ) : null}
       <form
         className="mb-3"
         onSubmit={(e) => {

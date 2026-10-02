@@ -12,6 +12,7 @@ import { ForgotPasswordPage } from './pages/ForgotPasswordPage'
 import { LoginPage } from './pages/LoginPage'
 import { ResetPasswordPage } from './pages/ResetPasswordPage'
 import { VerifyEmailPage } from './pages/VerifyEmailPage'
+import { ChangePasswordPage } from './pages/ChangePasswordPage'
 import { ProfilePage } from './pages/ProfilePage'
 import { PrivacyPage } from './pages/PrivacyPage'
 import { RegisterPage } from './pages/RegisterPage'
@@ -31,6 +32,7 @@ export default function App() {
         <Route element={<RequireAuth />}>
           <Route index element={<TimesheetPage />} />
           <Route path="profile" element={<ProfilePage />} />
+          <Route path="change-password" element={<ChangePasswordPage />} />
           <Route path="admin" element={<RequireAdmin />}>
             <Route index element={<AdminUsersPage />} />
             <Route path="timesheets" element={<AdminFortnightReportPage />} />
