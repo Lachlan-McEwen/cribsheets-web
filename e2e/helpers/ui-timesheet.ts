@@ -32,9 +32,7 @@ export async function saveTimesheetViaUi(page: Page): Promise<string> {
   return payload.fortnightEnding
 }
 
-export async function saveAndGenerateTimesheetViaUi(page: Page) {
-  await saveTimesheetViaUi(page)
-
+export async function generateTimesheetViaUi(page: Page): Promise<string> {
   const generate = page.locator('#generateButton')
   await expect(generate).toBeVisible()
   const generateResponse = page.waitForResponse(
@@ -63,4 +61,10 @@ export async function saveAndGenerateTimesheetViaUi(page: Page) {
     'href',
     `/api/timesheets/${payload.fortnightEnding}/export`,
   )
+  return payload.fortnightEnding
+}
+
+export async function saveAndGenerateTimesheetViaUi(page: Page) {
+  await saveTimesheetViaUi(page)
+  await generateTimesheetViaUi(page)
 }

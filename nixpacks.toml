@@ -1,0 +1,3 @@
+# Native build for better-sqlite3 (api dependency)
+[phases.setup]
+aptPkgs = ["python3", "make", "g++"]

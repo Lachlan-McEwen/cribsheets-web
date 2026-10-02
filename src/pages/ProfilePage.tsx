@@ -11,6 +11,7 @@ export function ProfilePage() {
   const { user, refresh } = useAuth()
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const [stations, setStations] = useState<string[]>([''])
+  const [unitStation, setUnitStation] = useState('')
   const [showCanvas, setShowCanvas] = useState(false)
   const [drawing, setDrawing] = useState(false)
   const [signatureTouched, setSignatureTouched] = useState(false)
@@ -25,7 +26,13 @@ export function ProfilePage() {
     void loadStationNames().then(setStations)
   }, [])
 
+  useEffect(() => {
+    setUnitStation(user?.unitStation ?? '')
+  }, [user?.unitStation])
+
   if (!user) return null
+
+  const stationsReady = stations.length > 1
 
   async function onSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault()
@@ -39,7 +46,7 @@ export function ProfilePage() {
       await updateProfile({
         name: String(fd.get('name') ?? ''),
         employeeNumber: String(fd.get('employeeNumber') ?? ''),
-        unitStation: String(fd.get('unitStation') ?? ''),
+        unitStation: unitStation.trim(),
         casual: fd.get('casual') === 'on',
         isCountryEmployee: fd.get('isCountryEmployee') === 'country',
         defaultShiftHours: fd.get('defaultShiftHours')
@@ -161,13 +168,23 @@ export function ProfilePage() {
               <div className="form-group">
                 <label className="control-label">Unit or Station</label>
                 <div className="col-12">
-                  <select defaultValue={user.unitStation} className="form-control col-12" name="unitStation" required>
+                  <select
+                    className="form-control col-12"
+                    name="unitStation"
+                    value={unitStation}
+                    onChange={(e) => setUnitStation(e.target.value)}
+                    required
+                    disabled={!stationsReady}
+                  >
                     {stations.map((s) => (
                       <option key={s || 'empty'} value={s}>
                         {s || ' '}
                       </option>
                     ))}
                   </select>
+                  {!stationsReady ? (
+                    <p className="form-text text-muted mb-0 mt-1">Loading station list…</p>
+                  ) : null}
                 </div>
               </div>
               <br />

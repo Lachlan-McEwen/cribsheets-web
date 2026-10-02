@@ -98,9 +98,14 @@ export function LoginPage() {
                   {busy ? 'Signing in…' : 'Log in'}
                 </button>
               </div>
-              <br />
-              <br />
-              <div>
+              {registrationOpen ? (
+                <div className="mt-3">
+                  <Link id="login-register" to="/register" className="w-100 btn btn-lg btn-outline-primary">
+                    Register as a new user
+                  </Link>
+                </div>
+              ) : null}
+              <div className="mt-3">
                 <p>
                   <Link to="/forgot-password">Forgot password?</Link>
                 </p>
@@ -113,11 +118,6 @@ export function LoginPage() {
                     >
                       Resend verification email
                     </button>
-                  </p>
-                ) : null}
-                {registrationOpen ? (
-                  <p>
-                    <Link to="/register">Register as a new user</Link>
                   </p>
                 ) : null}
               </div>
