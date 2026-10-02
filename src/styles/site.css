@@ -263,6 +263,56 @@ label {
     font-weight: 700;
 }
 
+/* Disclosure toggles (day rows + crib/leave sections) */
+.disclosure-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    width: 100%;
+    margin-bottom: 0;
+}
+
+.disclosure-toggle__label {
+    flex: 1;
+    min-width: 0;
+    text-align: left;
+}
+
+.disclosure-toggle__caret {
+    flex-shrink: 0;
+    width: 0.45em;
+    height: 0.45em;
+    margin-right: 0.1em;
+    border-right: 2px solid currentColor;
+    border-bottom: 2px solid currentColor;
+    opacity: 0.65;
+    transform: rotate(-45deg);
+    transition: transform 0.15s ease, opacity 0.15s ease;
+}
+
+.disclosure-toggle[aria-expanded="false"] .disclosure-toggle__caret {
+    transform: rotate(-135deg);
+}
+
+.disclosure-toggle:hover .disclosure-toggle__caret,
+.disclosure-toggle:focus .disclosure-toggle__caret {
+    opacity: 0.9;
+}
+
+.cribDropDown.disclosure-toggle,
+.leaveDropDown.disclosure-toggle,
+.shiftChangeDropDown.disclosure-toggle {
+    margin-bottom: 0;
+}
+
+.cribDropDown.disclosure-toggle .disclosure-toggle__caret,
+.leaveDropDown.disclosure-toggle .disclosure-toggle__caret,
+.shiftChangeDropDown.disclosure-toggle .disclosure-toggle__caret {
+    width: 0.4em;
+    height: 0.4em;
+}
+
 /* Collapsible sections */
 .section {
     background-color: var(--cs-section-bg);

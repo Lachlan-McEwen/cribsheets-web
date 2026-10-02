@@ -1,7 +1,7 @@
 import type { CribPenalty, TimeSheetDay } from '../../../lib/timesheet-export/legacy-types.ts'
 import { LEAVE_TYPE_OPTIONS, SHIFT_CODE_OPTIONS, SICK_CERT_OPTIONS } from '../../lib/enumLabels.ts'
 import { formatDayHeader, parseIsoDate } from '../../lib/format.ts'
-import { CollapsibleSection, padTimePart, useDigitsOnly } from './CollapsibleSection.tsx'
+import { CollapsibleSection, DisclosureHeader, padTimePart, useDigitsOnly } from './CollapsibleSection.tsx'
 
 type Props = {
   index: number
@@ -191,14 +191,15 @@ export function TimesheetDayRow({
 
   return (
     <div className="dateRow">
-      <h5
+      <DisclosureHeader
+        id={panelId}
         className="btn btn-secondary dateDropDown"
-        aria-expanded={expanded}
-        aria-controls={panelId}
-        onClick={onToggleExpand}
+        expanded={expanded}
+        onToggle={onToggleExpand}
+        headingLevel="h5"
       >
-        {header} ▼
-      </h5>
+        {header}
+      </DisclosureHeader>
       {day.done ? <span className="day-tick">✔</span> : null}
 
       <div id={panelId} className={`collapse date${expanded ? ' show' : ''}`}>

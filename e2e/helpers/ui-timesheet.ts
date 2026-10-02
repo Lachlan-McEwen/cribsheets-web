@@ -16,9 +16,24 @@ export async function fillTimesheetDayViaUi(
   await expect(page.locator('.dateRow').nth(dayIndex).locator('.day-tick')).toBeVisible()
 }
 
-export async function saveAndGenerateTimesheetViaUi(page: Page) {
+export async function saveTimesheetViaUi(page: Page): Promise<string> {
+  const saveResponse = page.waitForResponse(
+    (res) => {
+      if (res.request().method() !== 'PUT' || !res.ok()) return false
+      const { pathname } = new URL(res.url())
+      return /^\/api\/timesheets\/\d{4}-\d{2}-\d{2}$/.test(pathname)
+    },
+    { timeout: 30_000 },
+  )
   await page.locator('#save-button').click()
+  const response = await saveResponse
+  const payload = (await response.json()) as { fortnightEnding: string }
   await expect(page.getByText('Timesheet saved.')).toBeVisible({ timeout: 15_000 })
+  return payload.fortnightEnding
+}
+
+export async function saveAndGenerateTimesheetViaUi(page: Page) {
+  await saveTimesheetViaUi(page)
 
   const generate = page.locator('#generateButton')
   await expect(generate).toBeVisible()
