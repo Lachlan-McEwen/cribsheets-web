@@ -1,3 +1,6 @@
+import fs from 'node:fs'
+import os from 'node:os'
+import path from 'node:path'
 import { expect, type Page } from '@playwright/test'
 
 export async function fillTimesheetDayViaUi(
@@ -62,6 +65,25 @@ export async function generateTimesheetViaUi(page: Page): Promise<string> {
     `/api/timesheets/${payload.fortnightEnding}/export`,
   )
   return payload.fortnightEnding
+}
+
+export async function downloadTimesheetViaUi(page: Page): Promise<string> {
+  const link = page.getByRole('link', { name: 'Download' })
+  await expect(link).toBeVisible({ timeout: 15_000 })
+
+  const downloadPromise = page.waitForEvent('download', { timeout: 30_000 })
+  await link.click()
+  const download = await downloadPromise
+
+  expect(download.suggestedFilename()).toMatch(/\.xlsm$/i)
+
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'cribsheets-e2e-dl-'))
+  const filePath = path.join(dir, download.suggestedFilename())
+  await download.saveAs(filePath)
+
+  const stat = fs.statSync(filePath)
+  expect(stat.size).toBeGreaterThan(10_000)
+  return filePath
 }
 
 export async function saveAndGenerateTimesheetViaUi(page: Page) {

@@ -4,5 +4,6 @@ api/node_modules/
 dist/
 api/data/
 .git/
+Dockerfile
 scripts/excel-spike/dotnet-export/bin/
 scripts/excel-spike/dotnet-export/obj/

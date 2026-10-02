@@ -12,7 +12,7 @@
     "dev:ui": "vite",
     "build": "npm run build:ui && npm install --prefix api",
     "build:ui": "tsc -b && vite build",
-    "start": "npm run start --prefix api",
+    "start": "npm --prefix api start",
     "seed:admin": "npm run seed:admin --prefix api",
     "seed:admin:railway": "railway ssh -- npm run seed:admin --prefix api",
     "lint": "oxlint",
@@ -27,7 +27,7 @@
     "test:e2e": "playwright test",
     "test:e2e:ui": "playwright test --ui",
     "test:e2e:install": "playwright install chromium",
-    "postinstall": "playwright install chromium"
+    "postinstall": "node -e \"if (process.env.PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD === '1' || process.env.CI || process.env.RAILWAY_ENVIRONMENT) process.exit(0)\" || playwright install chromium"
   },
   "dependencies": {
     "@sheetkit/node": "^0.5.1",
