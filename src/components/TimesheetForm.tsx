@@ -39,12 +39,10 @@ export function TimesheetForm({
   const toast = useToast()
   const { phase: savePhase, start: startSave, succeed: saveSucceeded, fail: saveFailed, label: saveLabel } =
     useSubmitPhase()
-  const [showDownload, setShowDownload] = useState(hasDownload)
   const [generateBusy, setGenerateBusy] = useState(false)
 
-  useEffect(() => {
-    setShowDownload(hasDownload)
-  }, [hasDownload, document.fortnightEnding])
+  const showDownload = hasDownload && !formChanged
+  const hideGenerate = hasDownload && !formChanged
 
   const updateDay = useCallback(
     (index: number, day: TimesheetDocument['days'][number]) => {
@@ -73,7 +71,6 @@ export function TimesheetForm({
 
   const save = () => {
     startSave()
-    setShowDownload(false)
     void onSave(document)
       .then(() => {
         setFormChanged(false)
@@ -90,7 +87,6 @@ export function TimesheetForm({
     setGenerateBusy(true)
     void onGenerate(document)
       .then(() => {
-        setShowDownload(true)
         toast.success('Timesheet generated. You can download the spreadsheet.')
       })
       .catch((e) => {
@@ -101,7 +97,7 @@ export function TimesheetForm({
 
   const approvalMailto = timesheetApprovalMailtoUrl(
     document,
-    hasDownload || showDownload,
+    showDownload,
     authorisingManagerEmail,
   )
 
@@ -188,19 +184,17 @@ export function TimesheetForm({
             <div className="action-buttons mt-3">
               <button
                 type="button"
-                className="btn btn-success"
+                className={`btn btn-success${hideGenerate ? ' d-none' : ''}`}
                 id="generateButton"
                 disabled={generateBusy}
-                style={{ display: showDownload ? 'none' : undefined }}
                 onClick={generate}
               >
                 {generateBusy ? 'Generating...' : 'Generate Timesheet'}
               </button>
               <a
-                className="btn btn-outline-success"
+                className={`btn btn-outline-success${showDownload ? '' : ' d-none'}`}
                 id="downloadButton"
                 href={downloadUrl}
-                style={{ display: showDownload ? undefined : 'none' }}
               >
                 Download
               </a>

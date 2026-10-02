@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { Navigate, useNavigate, useSearchParams } from 'react-router-dom'
 import { useAuth } from '../auth/AuthContext.tsx'
 import { TimesheetForm } from '../components/TimesheetForm.tsx'
@@ -33,6 +33,8 @@ export function TimesheetPage() {
   const [lastUpdated, setLastUpdated] = useState<number | null>(null)
   const [hasOutput, setHasOutput] = useState(false)
   const [templateVersion, setTemplateVersion] = useState('')
+  /** Ignores in-flight GET responses older than the latest save/generate. */
+  const timesheetRevision = useRef<number | null>(null)
 
   const casual = user?.casual ?? false
   const fortnightOptions = useMemo(() => getFortnightEndingDates(casual), [casual])
@@ -53,29 +55,47 @@ export function TimesheetPage() {
       .catch(() => setTemplateVersion(''))
   }, [user])
 
+  const fortnightIso = toFortnightParam(selectedEnding)
+  const userId = user?.id
+
   useEffect(() => {
-    if (!user) return
-    const iso = toFortnightParam(selectedEnding)
-    const blank = createTimesheet(selectedEnding, user)
+    if (!userId) return
+    const blank = createTimesheet(selectedEnding, user!)
+    let cancelled = false
+    timesheetRevision.current = null
     setHasOutput(false)
     setLastUpdated(null)
-    void getTimesheet(iso)
+    void getTimesheet(fortnightIso)
       .then((stored) => {
+        if (cancelled) return
+        if (
+          timesheetRevision.current != null &&
+          stored.lastUpdated < timesheetRevision.current
+        ) {
+          return
+        }
+        timesheetRevision.current = stored.lastUpdated
         const loaded = stored.document as TimesheetDocument
         setDoc({
           ...loaded,
-          fortnightEnding: iso,
-          user: apiUserToTimesheetUser(user),
+          fortnightEnding: fortnightIso,
+          user: apiUserToTimesheetUser(user!),
         })
         setLastUpdated(stored.lastUpdated)
         setHasOutput(stored.hasOutput)
       })
       .catch(() => {
+        if (cancelled) return
+        if (timesheetRevision.current != null) return
         setDoc(blank)
         setLastUpdated(null)
         setHasOutput(false)
       })
-  }, [selectedEnding, user])
+    return () => {
+      cancelled = true
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- reload when fortnight or account changes
+  }, [fortnightIso, userId])
 
   if (!user) return null
   if (profileNeedsCompletion(user)) return <Navigate to="/profile" replace />
@@ -105,6 +125,7 @@ export function TimesheetPage() {
             document as unknown as Record<string, unknown>,
             lastUpdated,
           )
+          timesheetRevision.current = saved.lastUpdated
           setLastUpdated(saved.lastUpdated)
           setHasOutput(saved.hasOutput)
         } catch (e) {
@@ -122,6 +143,7 @@ export function TimesheetPage() {
             document as unknown as Record<string, unknown>,
             lastUpdated,
           )
+          timesheetRevision.current = result.lastUpdated
           setLastUpdated(result.lastUpdated)
           setHasOutput(result.hasOutput)
         } catch (e) {

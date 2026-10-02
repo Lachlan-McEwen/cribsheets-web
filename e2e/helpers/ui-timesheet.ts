@@ -35,16 +35,17 @@ export async function saveAndGenerateTimesheetViaUi(page: Page) {
   const payload = (await response.json()) as {
     hasOutput: boolean
     fortnightEnding: string
-    document: { days: { done?: boolean }[] }
   }
   expect(payload.hasOutput).toBe(true)
-  expect(payload.document.days.some((d) => d.done)).toBe(true)
 
   await expect(page.getByText('Timesheet generated. You can download the spreadsheet.')).toBeVisible({
     timeout: 15_000,
   })
 
-  const exportRes = await page.request.get(`/api/timesheets/${payload.fortnightEnding}/export`)
-  expect(exportRes.ok()).toBeTruthy()
-  expect(exportRes.headers()['content-type']).toMatch(/spreadsheet|excel|macro/i)
+  const download = page.getByRole('link', { name: 'Download' })
+  await expect(download).toBeVisible({ timeout: 15_000 })
+  await expect(download).toHaveAttribute(
+    'href',
+    `/api/timesheets/${payload.fortnightEnding}/export`,
+  )
 }

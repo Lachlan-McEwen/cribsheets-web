@@ -364,10 +364,6 @@ label {
     margin: 0 !important;
 }
 
-#downloadButton {
-    display: none;
-}
-
 #myInput {
     padding: 20px;
     margin-top: -6px;
