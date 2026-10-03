@@ -1,3 +1,4 @@
+import { execSync } from 'node:child_process'
 import fs from 'node:fs'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
@@ -26,6 +27,15 @@ function readBuildInfoFile(): Partial<BuildInfo> | null {
   }
 }
 
+function gitShortCommit(): string | null {
+  try {
+    const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..')
+    return execSync('git rev-parse --short HEAD', { cwd: repoRoot, encoding: 'utf8' }).trim() || null
+  } catch {
+    return null
+  }
+}
+
 /** Deploy / build metadata for admin diagnostics. */
 export function getBuildInfo(): BuildInfo {
   if (cached) return cached
@@ -35,7 +45,7 @@ export function getBuildInfo(): BuildInfo {
     shortCommit(process.env.RAILWAY_GIT_COMMIT_SHA) ??
     shortCommit(process.env.GIT_COMMIT) ??
     shortCommit(fromFile?.commit ?? undefined) ??
-    null
+    gitShortCommit()
 
   cached = {
     version: process.env.APP_VERSION?.trim() || fromFile?.version || 'dev',
