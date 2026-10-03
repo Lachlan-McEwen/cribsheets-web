@@ -16,6 +16,17 @@ export function userHasSignature(userId: string): boolean {
   }
 }
 
+/** File mtime (ms) for cache-busting signature image URLs after reload. */
+export function signatureUpdatedAtMs(userId: string): number | null {
+  try {
+    const filePath = signaturePathForUser(userId)
+    if (!fs.existsSync(filePath)) return null
+    return fs.statSync(filePath).mtimeMs
+  } catch {
+    return null
+  }
+}
+
 export function saveSignaturePng(userId: string, pngBytes: Buffer): void {
   fs.mkdirSync(SIGNATURES_DIR, { recursive: true })
   fs.writeFileSync(signaturePathForUser(userId), pngBytes)

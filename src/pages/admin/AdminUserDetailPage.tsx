@@ -78,7 +78,11 @@ export function AdminUserDetailPage() {
             {user.hasSignature ? (
               <div className="mt-3 pt-3 border-top">
                 <div className="text-muted small mb-2">Signature</div>
-                <img src={adminUserSignatureUrl(user.id)} alt="Signature" className="admin-signature-preview" />
+                <img
+                  src={adminUserSignatureUrl(user.id, user.signatureUpdatedAt)}
+                  alt="Signature"
+                  className="admin-signature-preview"
+                />
               </div>
             ) : null}
           </div>

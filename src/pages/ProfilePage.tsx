@@ -39,7 +39,6 @@ export function ProfilePage() {
   const [drawing, setDrawing] = useState(false)
   const [signatureTouched, setSignatureTouched] = useState(false)
   const [signatureError, setSignatureError] = useState(false)
-  const [signatureSavedAt, setSignatureSavedAt] = useState(0)
   const [defaultShiftHoursPart, setDefaultShiftHoursPart] = useState<number | null>(null)
   const [defaultShiftMinutesPart, setDefaultShiftMinutesPart] = useState<number | null>(null)
   const toast = useToast()
@@ -68,10 +67,7 @@ export function ProfilePage() {
 
   const stationsReady = stations.length > 1
 
-  const serverSignatureSrc =
-    user.hasSignature
-      ? `${profileSignatureUrl()}${signatureSavedAt ? `?v=${signatureSavedAt}` : ''}`
-      : null
+  const serverSignatureSrc = user.hasSignature ? profileSignatureUrl(user.signatureUpdatedAt) : null
   const signaturePreviewSrc =
     !signatureEditing && (signatureDraftPreview ?? serverSignatureSrc)
 
@@ -118,7 +114,6 @@ export function ProfilePage() {
         signatureDataUrl,
       })
       await refresh()
-      if (signatureDataUrl) setSignatureSavedAt(Date.now())
       saveSucceeded()
       toast.success('Profile saved.')
       setSignatureEditing(false)

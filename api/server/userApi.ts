@@ -1,8 +1,9 @@
 import type { UserRow } from './db.js'
-import { userHasSignature } from './signatures.js'
+import { signatureUpdatedAtMs, userHasSignature } from './signatures.js'
 
 export type ApiUser = UserRow & {
   hasSignature: boolean
+  signatureUpdatedAt: number | null
   profileIsComplete: boolean
   emailVerified: boolean
 }
@@ -21,6 +22,7 @@ export function toApiUser(user: UserRow): ApiUser {
   return {
     ...user,
     hasSignature,
+    signatureUpdatedAt: hasSignature ? signatureUpdatedAtMs(user.id) : null,
     profileIsComplete: profileIsComplete(user, hasSignature),
     emailVerified: user.emailVerifiedAt != null,
   }

@@ -12,6 +12,7 @@ export type ApiUser = {
   defaultShiftHours: number | null
   defaultShiftCode: string
   hasSignature: boolean
+  signatureUpdatedAt: number | null
   profileIsComplete: boolean
   emailVerified: boolean
   authorisingManagerEmail: string
@@ -188,12 +189,14 @@ export function updateProfile(payload: ProfileUpdatePayload) {
   })
 }
 
-export function profileSignatureUrl(): string {
-  return '/api/profile/signature'
+export function profileSignatureUrl(updatedAt?: number | null): string {
+  const base = '/api/profile/signature'
+  return updatedAt != null ? `${base}?v=${updatedAt}` : base
 }
 
-export function adminUserSignatureUrl(userId: string): string {
-  return `/api/admin/users/${userId}/signature`
+export function adminUserSignatureUrl(userId: string, updatedAt?: number | null): string {
+  const base = `/api/admin/users/${userId}/signature`
+  return updatedAt != null ? `${base}?v=${updatedAt}` : base
 }
 
 export type TimesheetResponse = {
