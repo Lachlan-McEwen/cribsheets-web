@@ -36,6 +36,7 @@ import {
 } from './signatures.js'
 import { getTemplateVersion } from '../../lib/timesheet-export/template-version.js'
 import type { TimesheetDocument } from '../../lib/timesheet-export/legacy-types.js'
+import { normalizeTimesheetDocumentForSave } from '../../lib/timesheet-form/normalize-document.js'
 import { outputPathForFileName, writeTimesheetXlsm } from './timesheetExport.js'
 import {
   getSummariesForFortnight,
@@ -252,7 +253,10 @@ export async function tryHandleApi(
       json(res, 400, { error: 'document_required' })
       return true
     }
-    const saveResult = saveTimesheet(user.id, fortnightEnding, body.document, {
+    const normalizedDocument = normalizeTimesheetDocumentForSave(
+      body.document as TimesheetDocument,
+    ) as unknown as Record<string, unknown>
+    const saveResult = saveTimesheet(user.id, fortnightEnding, normalizedDocument, {
       ifUnmodifiedSince: body.ifUnmodifiedSince ?? null,
       clearOutput: false,
     })
@@ -261,12 +265,12 @@ export async function tryHandleApi(
       return true
     }
     try {
-      const doc = body.document as TimesheetDocument
+      const doc = normalizedDocument as TimesheetDocument
       const outputFileName = await writeTimesheetXlsm(user, fortnightEnding, {
         ...doc,
         fortnightEnding,
       })
-      const payload = setTimesheetOutput(user.id, fortnightEnding, outputFileName, body.document)
+      const payload = setTimesheetOutput(user.id, fortnightEnding, outputFileName, normalizedDocument)
       json(res, 200, {
         fortnightEnding,
         lastUpdated: payload.lastUpdated,
@@ -328,7 +332,10 @@ export async function tryHandleApi(
         json(res, 400, { error: 'document_required' })
         return true
       }
-      const saved = saveTimesheet(user.id, fortnightEnding, body.document, {
+      const normalizedDocument = normalizeTimesheetDocumentForSave(
+        body.document as TimesheetDocument,
+      ) as unknown as Record<string, unknown>
+      const saved = saveTimesheet(user.id, fortnightEnding, normalizedDocument, {
         ifUnmodifiedSince: body.ifUnmodifiedSince ?? null,
         clearOutput: true,
       })

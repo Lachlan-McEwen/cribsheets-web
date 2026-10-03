@@ -1,4 +1,4 @@
-import { useCallback, useState, type ReactNode } from 'react'
+import { useState, type ReactNode } from 'react'
 
 type DisclosureHeaderProps = {
   id: string
@@ -7,6 +7,8 @@ type DisclosureHeaderProps = {
   onToggle: () => void
   headingLevel: 'h5' | 'h6'
   children: ReactNode
+  /** Shown before the expand caret (e.g. day-complete tick). */
+  trailing?: ReactNode
 }
 
 export function DisclosureHeader({
@@ -16,6 +18,7 @@ export function DisclosureHeader({
   onToggle,
   headingLevel,
   children,
+  trailing,
 }: DisclosureHeaderProps) {
   const Heading = headingLevel
   return (
@@ -27,6 +30,7 @@ export function DisclosureHeader({
       role="button"
     >
       <span className="disclosure-toggle__label">{children}</span>
+      {trailing ? <span className="disclosure-toggle__trailing">{trailing}</span> : null}
       <span className="disclosure-toggle__caret" aria-hidden="true" />
     </Heading>
   )
@@ -64,11 +68,3 @@ export function CollapsibleSection({ id, title, toggleClass, children, onClear }
   )
 }
 
-export function useDigitsOnly() {
-  return useCallback((raw: string) => raw.replace(/\D+/g, ''), [])
-}
-
-export function padTimePart(value: string | number | null | undefined): string {
-  if (value === null || value === undefined || value === '') return ''
-  return String(value).padStart(2, '0')
-}

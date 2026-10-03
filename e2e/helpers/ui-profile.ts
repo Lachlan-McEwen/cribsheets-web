@@ -1,5 +1,27 @@
 import { expect, type Page } from '@playwright/test'
 
+/** Offset from the canvas top-left in CSS pixels (matches pointer hit-testing). */
+export async function drawSignatureStroke(
+  page: Page,
+  from: { x: number; y: number },
+  to: { x: number; y: number },
+) {
+  const canvas = page.locator('#signatureCanvas')
+  await expect(canvas).toBeVisible()
+  const box = await canvas.boundingBox()
+  expect(box).toBeTruthy()
+  await page.mouse.move(box!.x + from.x, box!.y + from.y)
+  await page.mouse.down()
+  await page.mouse.move(box!.x + to.x, box!.y + to.y)
+  await page.mouse.up()
+}
+
+export async function fetchProfileSignatureBytes(page: Page): Promise<Buffer> {
+  const res = await page.request.get('/api/profile/signature')
+  expect(res.ok()).toBeTruthy()
+  return Buffer.from(await res.body())
+}
+
 export type CompleteProfileOpts = {
   name?: string
   employeeNumber?: string
@@ -26,14 +48,7 @@ export async function completeProfileViaUi(page: Page, opts: CompleteProfileOpts
   }
 
   await page.getByRole('button', { name: 'Edit signature' }).click()
-  const canvas = page.locator('#signatureCanvas')
-  await expect(canvas).toBeVisible()
-  const box = await canvas.boundingBox()
-  expect(box).toBeTruthy()
-  await page.mouse.move(box!.x + 40, box!.y + 40)
-  await page.mouse.down()
-  await page.mouse.move(box!.x + 200, box!.y + 120)
-  await page.mouse.up()
+  await drawSignatureStroke(page, { x: 40, y: 40 }, { x: 200, y: 120 })
 
   await page.getByRole('button', { name: 'Save profile' }).click()
   await expect(page.getByText('Profile saved.')).toBeVisible({ timeout: 15_000 })

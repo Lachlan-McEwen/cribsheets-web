@@ -3,9 +3,14 @@ import { Link } from 'react-router-dom'
 import { useAuth } from '../auth/AuthContext.tsx'
 import { useToast } from '../feedback/ToastContext.tsx'
 import { useSubmitPhase } from '../feedback/useSubmitPhase.ts'
+import { DurationField } from '../components/timesheet/DurationField.tsx'
 import { profileSignatureUrl, updateProfile } from '../lib/api.ts'
 import { SHIFT_CODE_OPTIONS } from '../lib/enumLabels.ts'
 import { loadStationNames } from '../lib/stations.ts'
+import {
+  decimalHoursFromDurationParts,
+  defaultShiftDurationParts,
+} from '../../lib/timesheet-form/time.ts'
 
 function RequiredMark() {
   return <span className="text-danger" aria-hidden="true"> *</span>
@@ -35,6 +40,8 @@ export function ProfilePage() {
   const [signatureTouched, setSignatureTouched] = useState(false)
   const [signatureError, setSignatureError] = useState(false)
   const [signatureSavedAt, setSignatureSavedAt] = useState(0)
+  const [defaultShiftHoursPart, setDefaultShiftHoursPart] = useState<number | null>(null)
+  const [defaultShiftMinutesPart, setDefaultShiftMinutesPart] = useState<number | null>(null)
   const toast = useToast()
   const { phase: savePhase, start: startSave, succeed: saveSucceeded, fail: saveFailed, label: saveLabel } =
     useSubmitPhase()
@@ -45,6 +52,17 @@ export function ProfilePage() {
   useEffect(() => {
     setUnitStation(user?.unitStation ?? '')
   }, [user?.unitStation])
+
+  useEffect(() => {
+    if (user?.defaultShiftHours == null || user.defaultShiftHours <= 0) {
+      setDefaultShiftHoursPart(null)
+      setDefaultShiftMinutesPart(null)
+      return
+    }
+    const parts = defaultShiftDurationParts(user.defaultShiftHours)
+    setDefaultShiftHoursPart(parts.hours)
+    setDefaultShiftMinutesPart(parts.minutes)
+  }, [user?.defaultShiftHours])
 
   if (!user) return null
 
@@ -89,9 +107,10 @@ export function ProfilePage() {
         unitStation: unitStation.trim(),
         casual: fd.get('casual') === 'casual',
         isCountryEmployee: fd.get('isCountryEmployee') === 'country',
-        defaultShiftHours: fd.get('defaultShiftHours')
-          ? Number(fd.get('defaultShiftHours'))
-          : null,
+        defaultShiftHours: decimalHoursFromDurationParts(
+          defaultShiftHoursPart,
+          defaultShiftMinutesPart,
+        ),
         defaultShiftCode: String(fd.get('defaultShiftCode') ?? 'None'),
         authorisingManagerEmail: String(fd.get('authorisingManagerEmail') ?? ''),
         signatureDataUrl,
@@ -371,18 +390,18 @@ export function ProfilePage() {
               </div>
               <br />
               <div className="form-group">
-                <label className="control-label col-12" htmlFor="profile-default-shift-hours">
-                  Default Shift Hours
-                </label>
-                <div>
-                  <input
-                    id="profile-default-shift-hours"
-                    className="form-control col-12"
-                    name="defaultShiftHours"
-                    placeholder="10.5"
-                    defaultValue={user.defaultShiftHours ?? ''}
-                  />
-                </div>
+                <DurationField
+                  id="profile-default-shift-duration"
+                  label="Default shift length"
+                  hours={defaultShiftHoursPart}
+                  minutes={defaultShiftMinutesPart}
+                  onHoursChange={setDefaultShiftHoursPart}
+                  onMinutesChange={setDefaultShiftMinutesPart}
+                  inputClassName="profile-default-shift-duration"
+                />
+                <p className="form-text text-muted mb-0 mt-1">
+                  Used when you apply your default shift on a timesheet day.
+                </p>
               </div>
               <br />
               <div className="form-group">

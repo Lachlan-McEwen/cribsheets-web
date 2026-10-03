@@ -1,7 +1,6 @@
 import fs from 'node:fs'
 import os from 'node:os'
 import path from 'node:path'
-import { timesheetExcelFileName } from '../../lib/timesheet-export/excel-file-name.ts'
 import { expect, type Page } from '@playwright/test'
 
 export type ExpectApprovalMailtoOpts = {
@@ -36,19 +35,12 @@ export async function expectTimesheetApprovalMailtoViaUi(page: Page, opts: Expec
   expect(subject).toContain(opts.employeeName)
 
   const body = params.get('body') ?? ''
+  expect(body).toBe('')
+
   if (opts.hasGeneratedSpreadsheet) {
-    const fileName = timesheetExcelFileName(
-      {
-        name: opts.employeeName,
-        employeeNumber: opts.employeeNumber,
-        unitStation: opts.unitStation,
-      },
-      opts.fortnightEnding,
-    )
-    expect(body).toContain(`Please attach the spreadsheet file: ${fileName}`)
+    await expect(page.getByRole('link', { name: 'Download' })).toBeVisible()
   } else {
-    expect(body).toContain('Generate Timesheet')
-    expect(body).toContain('Download')
+    await expect(page.locator('#generateButton')).toBeVisible()
   }
 }
 

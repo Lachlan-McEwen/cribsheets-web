@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
 import type { TimesheetDocument } from '../../lib/timesheet-export/legacy-types.ts'
+import { normalizeTimesheetDocumentForSave } from '../../lib/timesheet-form/normalize-document.ts'
 import { formatDateAu } from '../lib/format.ts'
 import { toFortnightParam } from '../lib/fortnight.ts'
 import { timesheetApprovalMailtoUrl } from '../lib/timesheetApprovalMailto.ts'
@@ -19,6 +20,7 @@ type Props = {
   hasDownload: boolean
   downloadUrl: string
   authorisingManagerEmail: string
+  defaultShiftHours: number | null
 }
 
 export function TimesheetForm({
@@ -33,6 +35,7 @@ export function TimesheetForm({
   hasDownload,
   downloadUrl,
   authorisingManagerEmail,
+  defaultShiftHours,
 }: Props) {
   const [expandedDay, setExpandedDay] = useState<number | null>(null)
   const [formChanged, setFormChanged] = useState(false)
@@ -71,7 +74,8 @@ export function TimesheetForm({
 
   const save = () => {
     startSave()
-    void onSave(document)
+    const payload = normalizeTimesheetDocumentForSave(document)
+    void onSave(payload)
       .then(() => {
         setFormChanged(false)
         saveSucceeded()
@@ -85,7 +89,8 @@ export function TimesheetForm({
 
   const generate = () => {
     setGenerateBusy(true)
-    void onGenerate(document)
+    const payload = normalizeTimesheetDocumentForSave(document)
+    void onGenerate(payload)
       .then(() => {
         toast.success('Timesheet generated. You can download the spreadsheet.')
       })
@@ -95,11 +100,7 @@ export function TimesheetForm({
       .finally(() => setGenerateBusy(false))
   }
 
-  const approvalMailto = timesheetApprovalMailtoUrl(
-    document,
-    showDownload,
-    authorisingManagerEmail,
-  )
+  const approvalMailto = timesheetApprovalMailtoUrl(document, authorisingManagerEmail)
 
   return (
     <>
@@ -153,6 +154,7 @@ export function TimesheetForm({
                   day={day}
                   stations={stations}
                   isCountryEmployee={document.user.isCountryEmployee ?? false}
+                  defaultShiftHours={defaultShiftHours}
                   expanded={expandedDay === i}
                   onToggleExpand={() => {
                     setExpandedDay((prev) => (prev === i ? null : i))

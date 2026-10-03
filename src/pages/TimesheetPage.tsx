@@ -23,6 +23,7 @@ import {
   createTimesheet,
   profileNeedsCompletion,
 } from '../lib/timesheetModel.ts'
+import { prepareLoadedTimesheet } from '../../lib/timesheet-form/normalize-document.ts'
 
 export function TimesheetPage() {
   const { user } = useAuth()
@@ -60,7 +61,7 @@ export function TimesheetPage() {
 
   useEffect(() => {
     if (!userId) return
-    const blank = createTimesheet(selectedEnding, user!)
+    const blank = prepareLoadedTimesheet(createTimesheet(selectedEnding, user!), user!.defaultShiftCode)
     let cancelled = false
     timesheetRevision.current = null
     setHasOutput(false)
@@ -76,11 +77,16 @@ export function TimesheetPage() {
         }
         timesheetRevision.current = stored.lastUpdated
         const loaded = stored.document as TimesheetDocument
-        setDoc({
-          ...loaded,
-          fortnightEnding: fortnightIso,
-          user: apiUserToTimesheetUser(user!),
-        })
+        setDoc(
+          prepareLoadedTimesheet(
+            {
+              ...loaded,
+              fortnightEnding: fortnightIso,
+              user: apiUserToTimesheetUser(user!),
+            },
+            user!.defaultShiftCode,
+          ),
+        )
         setLastUpdated(stored.lastUpdated)
         setHasOutput(stored.hasOutput)
       })
@@ -116,6 +122,7 @@ export function TimesheetPage() {
       hasDownload={hasOutput}
       downloadUrl={timesheetExportUrl(doc.fortnightEnding)}
       authorisingManagerEmail={user.authorisingManagerEmail}
+      defaultShiftHours={user.defaultShiftHours}
       onFortnightChange={(iso) => navigate(`/?fortnightEnding=${iso}`)}
       onDocumentChange={setDoc}
       onSave={async (document) => {

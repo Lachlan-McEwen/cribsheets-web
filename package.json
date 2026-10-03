@@ -24,6 +24,7 @@
     "excel:signature-node": "bun scripts/excel-spike/test-signature-node.ts",
     "excel:parity": "bun test lib/timesheet-export/parity.test.ts",
     "excel:test": "bun test lib/timesheet-export/",
+    "test:timesheet-form": "bun test lib/timesheet-form/",
     "test:api:integration": "npm run test:integration --prefix api",
     "test:e2e": "playwright test",
     "test:e2e:ui": "playwright test --ui",

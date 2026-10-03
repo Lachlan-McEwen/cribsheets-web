@@ -1,8 +1,11 @@
 import { deliverEmail } from './email.js'
+import { supportAlertsEnabled } from './supportAlerts.js'
 import type { SupportRequestWithUser } from './supportRequests.js'
 import { listAdminNotificationEmails } from './supportRequests.js'
 
 export async function notifyAdminsOfSupportRequest(request: SupportRequestWithUser): Promise<void> {
+  if (!supportAlertsEnabled()) return
+
   const recipients = listAdminNotificationEmails()
   if (recipients.length === 0) return
 

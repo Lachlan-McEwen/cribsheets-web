@@ -144,7 +144,10 @@ export function Layout() {
       </div>
       <footer className="site-footer">
         <div className="container d-flex justify-content-between align-items-center">
-          <span>&copy; 2026 Cribsheets</span>
+          <span>
+            &copy; 2026{' '}
+            <a href="https://cribsheets.com.au" rel="noopener noreferrer">Cribsheets.com.au</a>
+          </span>
           <Link to="/privacy">Privacy</Link>
         </div>
       </footer>

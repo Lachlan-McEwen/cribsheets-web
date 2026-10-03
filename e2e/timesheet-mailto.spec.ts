@@ -15,7 +15,7 @@ test.describe('timesheet approval mailto', () => {
     await clearEmailLogs(request)
   })
 
-  test('prefills manager, subject, and attachment hint after generate', async ({ page, request }) => {
+  test('prefills manager and subject after generate (empty mail body)', async ({ page, request }) => {
     test.setTimeout(150_000)
     const name = 'Mailto Test User'
     const { email, password } = await registerVerifiedUser(request, {

@@ -1,13 +1,19 @@
 import type { CribPenalty, TimeSheetDay } from '../../../lib/timesheet-export/legacy-types.ts'
+import { collapsedDaySummary } from '../../../lib/timesheet-form/day-summary.ts'
+import { digitsOnly } from '../../../lib/timesheet-form/time.ts'
 import { LEAVE_TYPE_OPTIONS, SHIFT_CODE_OPTIONS, SICK_CERT_OPTIONS } from '../../lib/enumLabels.ts'
 import { formatDayHeader, parseIsoDate } from '../../lib/format.ts'
-import { CollapsibleSection, DisclosureHeader, padTimePart, useDigitsOnly } from './CollapsibleSection.tsx'
+import { ClockTimeField } from './ClockTimeField.tsx'
+import { CollapsibleSection, DisclosureHeader } from './CollapsibleSection.tsx'
+import { DurationField } from './DurationField.tsx'
+import { ShiftTimesBlock } from './ShiftTimesBlock.tsx'
 
 type Props = {
   index: number
   day: TimeSheetDay
   stations: string[]
   isCountryEmployee: boolean
+  defaultShiftHours: number | null
   expanded: boolean
   onToggleExpand: () => void
   onChange: (day: TimeSheetDay) => void
@@ -51,68 +57,68 @@ function CribBlock({
       onClear={onClear}
     >
       <div className="form-group row">
-        <label className="control-label col-12">Started</label>
-        <div className="col-6 crib-time">
-          <input
-            type="time"
-            className="form-control"
-            value={penalty.started ?? ''}
-            onChange={(e) => update({ started: e.target.value || null })}
-          />
+        <div className="col-12 crib-time">
+          <ClockTimeField label="Started" value={penalty.started} onChange={(started) => update({ started })} />
         </div>
-        <br />
-        <br />
         {cribBreakRows(penalty).map(({ brk, j, visible }) =>
           visible ? (
-            <div className="row crib-break" key={j}>
-              <label className="control-label col-6">Broken</label>
-              <label className="control-label col-6">Restarted</label>
-              <div className="col-6 crib-time">
-                <input
-                  type="time"
-                  className="form-control"
-                  value={brk.broken ?? ''}
-                  onChange={(e) => {
-                    const breaks = [...(penalty.breaks ?? [])]
-                    breaks[j] = { ...breaks[j], broken: e.target.value || null }
-                    onChange({ ...penalty, breaks })
-                  }}
-                />
-              </div>
-              <div className="col-6 crib-time">
-                <input
-                  type="time"
-                  className="form-control"
-                  value={brk.restarted ?? ''}
-                  onChange={(e) => {
-                    const breaks = [...(penalty.breaks ?? [])]
-                    breaks[j] = { ...breaks[j], restarted: e.target.value || null }
-                    onChange({ ...penalty, breaks })
-                  }}
-                />
+            <div className="col-12" key={j}>
+              <div className="row crib-break g-2">
+                <div className="col-6 crib-time">
+                  <ClockTimeField
+                    label="Broken"
+                    value={brk.broken}
+                    onChange={(broken) => {
+                      const breaks = [...(penalty.breaks ?? [])]
+                      breaks[j] = { ...breaks[j], broken }
+                      onChange({ ...penalty, breaks })
+                    }}
+                  />
+                </div>
+                <div className="col-6 crib-time">
+                  <ClockTimeField
+                    label="Restarted"
+                    value={brk.restarted}
+                    onChange={(restarted) => {
+                      const breaks = [...(penalty.breaks ?? [])]
+                      breaks[j] = { ...breaks[j], restarted }
+                      onChange({ ...penalty, breaks })
+                    }}
+                  />
+                </div>
               </div>
             </div>
           ) : null,
         )}
       </div>
-      <div className="form-group row">
-        <div className="checkbox col-6">
-          <input
-            type="checkbox"
-            className="checkbox"
-            checked={penalty.noCrib ?? false}
-            onChange={(e) => update({ noCrib: e.target.checked })}
-          />
-          <label className="control-label">No Crib</label>
+      <div className="form-group row g-2">
+        <div className="col-6">
+          <div className="form-check">
+            <input
+              type="checkbox"
+              className="form-check-input"
+              id={`${idPrefix}-noCrib`}
+              checked={penalty.noCrib ?? false}
+              onChange={(e) => update({ noCrib: e.target.checked })}
+            />
+            <label className="form-check-label" htmlFor={`${idPrefix}-noCrib`}>
+              No Crib
+            </label>
+          </div>
         </div>
-        <div className="checkbox col-6">
-          <input
-            type="checkbox"
-            className="checkbox"
-            checked={penalty.spoiltMealClaimed ?? false}
-            onChange={(e) => update({ spoiltMealClaimed: e.target.checked })}
-          />
-          <label className="control-label">Spoilt Meal Claimed</label>
+        <div className="col-6">
+          <div className="form-check">
+            <input
+              type="checkbox"
+              className="form-check-input"
+              id={`${idPrefix}-spoiltMeal`}
+              checked={penalty.spoiltMealClaimed ?? false}
+              onChange={(e) => update({ spoiltMealClaimed: e.target.checked })}
+            />
+            <label className="form-check-label" htmlFor={`${idPrefix}-spoiltMeal`}>
+              Spoilt Meal Claimed
+            </label>
+          </div>
         </div>
       </div>
     </CollapsibleSection>
@@ -124,46 +130,19 @@ export function TimesheetDayRow({
   day,
   stations,
   isCountryEmployee,
+  defaultShiftHours,
   expanded,
   onToggleExpand,
   onChange,
 }: Props) {
-  const digitsOnly = useDigitsOnly()
   const header = formatDayHeader(parseIsoDate(day.date))
+  const summary = collapsedDaySummary(day)
   const panelId = `date${index}`
 
   const patch = (p: Partial<TimeSheetDay>) => onChange({ ...day, ...p })
 
-  const hourMinPair = (
-    hours: number | null | undefined,
-    minutes: number | null | undefined,
-    onHours: (v: string | null) => void,
-    onMinutes: (v: string | null) => void,
-    slot: number,
-  ) => (
-    <>
-      <input
-        className={`form-control hours hours${index}`}
-        value={hours ?? ''}
-        onInput={(e) => onHours(digitsOnly(e.currentTarget.value) || null)}
-        onChange={(e) => {
-          onHours(padTimePart(digitsOnly(e.currentTarget.value)) || null)
-          const other = document.querySelectorAll<HTMLInputElement>(`.minutes${index}`)[slot]
-          if (other?.value) other.value = padTimePart(other.value)
-        }}
-      />
-      :
-      <input
-        className={`form-control minutes minutes${index}`}
-        value={minutes ?? ''}
-        onInput={(e) => onMinutes(digitsOnly(e.currentTarget.value) || null)}
-        onChange={(e) => onMinutes(padTimePart(digitsOnly(e.currentTarget.value)) || null)}
-      />
-    </>
-  )
-
   const clearDay = () => {
-    if (!confirm(`are you aure you want to clear ${header}?`)) return
+    if (!confirm(`Are you sure you want to clear ${header}?`)) return
     onChange({
       ...day,
       start: null,
@@ -197,16 +176,28 @@ export function TimesheetDayRow({
         expanded={expanded}
         onToggle={onToggleExpand}
         headingLevel="h5"
+        trailing={
+          day.done ? (
+            <span className="day-tick" title="Day marked complete" aria-hidden="true">
+              ✓
+            </span>
+          ) : null
+        }
       >
-        {header}
+        <>
+          <span className="dateRow-title">{header}</span>
+          {summary ? <span className="dateRow-summary">{summary}</span> : null}
+        </>
       </DisclosureHeader>
-      {day.done ? <span className="day-tick">✔</span> : null}
 
       <div id={panelId} className={`collapse date${expanded ? ' show' : ''}`}>
         <div className="form-group row">
-          <label className="control-label col-12">Shift Code</label>
+          <label className="control-label col-12" htmlFor={`shiftCode${index}`}>
+            Shift Code
+          </label>
           <div className="col-10">
             <select
+              id={`shiftCode${index}`}
               className="form-control"
               value={day.shiftCode ?? 'None'}
               onChange={(e) => patch({ shiftCode: e.target.value as TimeSheetDay['shiftCode'] })}
@@ -220,61 +211,12 @@ export function TimesheetDayRow({
           </div>
         </div>
 
-        <div className="form-group row">
-          <label className="control-label col-6">Start</label>
-          <label className="control-label col-6">End</label>
-          <div className="col-6">
-            <input
-              type="time"
-              className="form-control"
-              id={`rosteredStart${index}`}
-              value={day.start ?? ''}
-              onChange={(e) => patch({ start: e.target.value || null })}
-            />
-          </div>
-          <div className="col-6">
-            <input
-              type="time"
-              className="form-control"
-              id={`rosteredEnd${index}`}
-              value={day.end ?? ''}
-              onChange={(e) => patch({ end: e.target.value || null })}
-            />
-          </div>
-        </div>
-
-        <div className="form-group row">
-          <label className="control-label col-4">Rostered</label>
-          <label className="control-label col-4">Overtime</label>
-          <label className="control-label col-4">Meals (unpaid)</label>
-          <div className="col-4">
-            {hourMinPair(
-              day.rosteredHours,
-              day.rosteredMinutes,
-              (v) => patch({ rosteredHours: v ? Number(v) : null }),
-              (v) => patch({ rosteredMinutes: v ? Number(v) : null }),
-              0,
-            )}
-          </div>
-          <div className="col-4">
-            {hourMinPair(
-              day.overtimeHours,
-              day.overtimeMinutes,
-              (v) => patch({ overtimeHours: v ? Number(v) : null }),
-              (v) => patch({ overtimeMinutes: v ? Number(v) : null }),
-              1,
-            )}
-          </div>
-          <div className="col-4">
-            {hourMinPair(
-              day.mealsHours,
-              day.mealsMinutes,
-              (v) => patch({ mealsHours: v ? Number(v) : null }),
-              (v) => patch({ mealsMinutes: v ? Number(v) : null }),
-              2,
-            )}
-          </div>
-        </div>
+        <ShiftTimesBlock
+          index={index}
+          day={day}
+          defaultShiftHours={defaultShiftHours}
+          onChange={patch}
+        />
         <br />
 
         <CribBlock
@@ -305,11 +247,13 @@ export function TimesheetDayRow({
             })
           }
         >
-          <div className="form-group row">
-            <label className="control-label col-7">Leave Type</label>
-            <label className="control-label col-5">Leave Time</label>
+          <div className="form-group row g-2">
             <div className="col-7">
+              <label className="duration-field__label" htmlFor={`leaveType${index}`}>
+                Leave type
+              </label>
               <select
+                id={`leaveType${index}`}
                 className="form-control"
                 value={day.leaveType ?? 'None'}
                 onChange={(e) => patch({ leaveType: e.target.value as TimeSheetDay['leaveType'] })}
@@ -321,14 +265,14 @@ export function TimesheetDayRow({
                 ))}
               </select>
             </div>
-            <div className="col-4">
-              {hourMinPair(
-                day.leaveHours,
-                day.leaveMinutes,
-                (v) => patch({ leaveHours: v ? Number(v) : null }),
-                (v) => patch({ leaveMinutes: v ? Number(v) : null }),
-                3,
-              )}
+            <div className="col-5">
+              <DurationField
+                label="Leave time"
+                hours={day.leaveHours}
+                minutes={day.leaveMinutes}
+                onHoursChange={(leaveHours) => patch({ leaveHours })}
+                onMinutesChange={(leaveMinutes) => patch({ leaveMinutes })}
+              />
             </div>
           </div>
           <div className="form-group row">
@@ -377,8 +321,13 @@ export function TimesheetDayRow({
           <div className="col-3">
             <input
               className="form-control"
+              inputMode="numeric"
               value={day.kms ?? ''}
-              onInput={(e) => patch({ kms: digitsOnly(e.currentTarget.value) ? Number(digitsOnly(e.currentTarget.value)) : null })}
+              onInput={(e) =>
+                patch({
+                  kms: digitsOnly(e.currentTarget.value) ? Number(digitsOnly(e.currentTarget.value)) : null,
+                })
+              }
             />
           </div>
         </div>
@@ -409,23 +358,19 @@ export function TimesheetDayRow({
                   />
                 </div>
               </div>
-              <div className="form-group row">
-                <label className="control-label col-6">Recall start</label>
-                <label className="control-label col-6">Recall finish</label>
+              <div className="form-group row g-2">
                 <div className="col-6">
-                  <input
-                    type="time"
-                    className="form-control"
-                    value={day.recallStart ?? ''}
-                    onChange={(e) => patch({ recallStart: e.target.value || null })}
+                  <ClockTimeField
+                    label="Recall start"
+                    value={day.recallStart}
+                    onChange={(recallStart) => patch({ recallStart })}
                   />
                 </div>
                 <div className="col-6">
-                  <input
-                    type="time"
-                    className="form-control"
-                    value={day.recallFinish ?? ''}
-                    onChange={(e) => patch({ recallFinish: e.target.value || null })}
+                  <ClockTimeField
+                    label="Recall finish"
+                    value={day.recallFinish}
+                    onChange={(recallFinish) => patch({ recallFinish })}
                   />
                 </div>
               </div>
@@ -471,23 +416,19 @@ export function TimesheetDayRow({
                 })
               }
             >
-              <div className="form-group row">
-                <label className="control-label col-6">On-call start</label>
-                <label className="control-label col-6">On-call finish</label>
+              <div className="form-group row g-2">
                 <div className="col-6">
-                  <input
-                    type="time"
-                    className="form-control"
-                    value={day.onCallStart ?? ''}
-                    onChange={(e) => patch({ onCallStart: e.target.value || null })}
+                  <ClockTimeField
+                    label="On-call start"
+                    value={day.onCallStart}
+                    onChange={(onCallStart) => patch({ onCallStart })}
                   />
                 </div>
                 <div className="col-6">
-                  <input
-                    type="time"
-                    className="form-control"
-                    value={day.onCallFinish ?? ''}
-                    onChange={(e) => patch({ onCallFinish: e.target.value || null })}
+                  <ClockTimeField
+                    label="On-call finish"
+                    value={day.onCallFinish}
+                    onChange={(onCallFinish) => patch({ onCallFinish })}
                   />
                 </div>
               </div>

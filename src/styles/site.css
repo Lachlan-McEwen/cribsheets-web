@@ -134,6 +134,11 @@ label {
     margin-bottom: 0.25rem;
 }
 
+.form-check-label {
+    margin-bottom: 0;
+    color: var(--cs-text);
+}
+
 .form-control,
 .form-select {
     border-color: var(--cs-border);
@@ -238,6 +243,11 @@ label {
     box-shadow: var(--cs-shadow-sm);
 }
 
+.dateRow .dateDropDown.disclosure-toggle {
+    width: 100%;
+    box-sizing: border-box;
+}
+
 .dateDropDown {
     font-family: inherit;
     font-weight: 600;
@@ -268,11 +278,32 @@ label {
     padding: 0 1rem 1rem;
 }
 
+.disclosure-toggle__trailing {
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+}
+
 .day-tick {
     color: var(--cs-success);
-    margin-left: 0.5rem;
-    font-size: 1rem;
+    font-size: 1.125rem;
     font-weight: 700;
+    line-height: 1;
+}
+
+.dateRow-title {
+    display: block;
+}
+
+.dateRow-summary {
+    display: block;
+    font-size: 0.8125rem;
+    font-weight: 400;
+    color: var(--cs-text-muted, #6c757d);
+    margin-top: 0.2rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
 /* Disclosure toggles (day rows + crib/leave sections) */
@@ -304,7 +335,7 @@ label {
 }
 
 .disclosure-toggle[aria-expanded="false"] .disclosure-toggle__caret {
-    transform: rotate(-135deg);
+    transform: rotate(45deg);
 }
 
 .disclosure-toggle:hover .disclosure-toggle__caret,
@@ -375,15 +406,88 @@ label {
     border-color: var(--cs-clear-hover-border);
 }
 
-/* Time inputs */
-.minutes {
-    width: 44%;
+/* Shift time & duration controls */
+.shift-times-block {
+    padding: 0.75rem 0 0.25rem;
+    border-top: 1px solid var(--cs-border);
+    margin-top: 0.5rem;
 }
 
-.hours {
-    width: 44%;
-    text-align: right;
+.shift-times-block__heading,
+.shift-times-block__subheading {
+    font-size: 0.8125rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--cs-text-muted, #6c757d);
+    margin: 0 0 0.75rem;
 }
+
+.shift-times-block__subheading {
+    margin-top: 1rem;
+    margin-bottom: 0.35rem;
+}
+
+.shift-times-block__clocks {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+}
+
+.shift-times-block__apply {
+    margin-top: 0.65rem;
+}
+
+.shift-times-block__hint {
+    font-size: 0.8125rem;
+    margin: 0.35rem 0 0;
+}
+
+.shift-times-block__durations {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0.75rem;
+    align-items: start;
+}
+
+.shift-times-block__durations .duration-field__input {
+    max-width: 100%;
+}
+
+@media (max-width: 576px) {
+    .shift-times-block__clocks {
+        grid-template-columns: 1fr;
+    }
+
+    .shift-times-block__durations {
+        grid-template-columns: 1fr;
+    }
+}
+
+.native-time-field,
+.duration-field {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+    min-width: 0;
+}
+
+.native-time-field__label,
+.duration-field__label {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--cs-text);
+    margin: 0;
+}
+
+.native-time-field__input,
+.duration-field__input {
+    width: 100%;
+    min-width: 0;
+    max-width: 11rem;
+    font-variant-numeric: tabular-nums;
+}
+
 
 .checkbox {
     margin-right: 4px !important;
@@ -450,6 +554,11 @@ label {
 
 .crib {
     padding-top: 0.25rem;
+}
+
+.crib-break {
+    padding-top: 0.5rem;
+    padding-bottom: 0.5rem;
 }
 
 /* Admin */
