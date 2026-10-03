@@ -390,9 +390,10 @@ label {
 
 .section-clear-button {
     float: right;
+    clear: both;
     width: 36px;
     height: 36px;
-    margin-top: -30px;
+    margin-top: 0.5rem;
     border: 1px solid var(--cs-border);
     border-radius: 6px;
     background: var(--cs-surface);
