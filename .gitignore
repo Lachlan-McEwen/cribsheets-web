@@ -19,6 +19,7 @@ dist
 dist-ssr
 scripts/excel-spike/output/
 scripts/.resend-domain.json
+api/server/build-info.json
 api/data/
 api/data-e2e/
 api/api/data-e2e/

@@ -250,6 +250,16 @@ export type AdminRegistrationSettings = {
   atUserCap: boolean
 }
 
+export type AdminDeployInfo = {
+  version: string
+  commit: string | null
+  builtAt: string | null
+}
+
+export function getAdminDeployInfo() {
+  return apiFetch<AdminDeployInfo>('/api/admin/version')
+}
+
 export function getAdminRegistration() {
   return apiFetch<AdminRegistrationSettings>('/api/admin/registration')
 }

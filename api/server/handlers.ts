@@ -59,6 +59,7 @@ import {
 import { e2eTestHooksEnabled } from './testHooks.js'
 import { isRegistrationAtUserCap, registrationAllowed, registrationMaxUsers } from './register.js'
 import { toApiUser } from './userApi.js'
+import { getBuildInfo } from './buildInfo.js'
 
 function adminRegistrationPayload() {
   const max = registrationMaxUsers()
@@ -353,6 +354,13 @@ export async function tryHandleApi(
       })
       return true
     }
+  }
+
+  if (method === 'GET' && path === '/api/admin/version') {
+    const admin = requireAdmin(getUser, res)
+    if (!admin) return true
+    json(res, 200, getBuildInfo())
+    return true
   }
 
   if (path === '/api/admin/registration') {

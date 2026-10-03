@@ -21,6 +21,8 @@ export function Layout() {
       .catch(() => setRegistrationOpen(false))
   }, [])
 
+  const handleLogout = () => void logout().then(() => navigate('/login'))
+
   return (
     <>
       <header>
@@ -61,12 +63,27 @@ export function Layout() {
                         </Link>
                       </li>
                     ) : null}
+                    <li className="nav-item d-sm-none">
+                      <Link className="nav-link" to="/profile">
+                        Profile
+                      </Link>
+                    </li>
+                    <li className="nav-item d-sm-none">
+                      <Link className="nav-link" to="/change-password">
+                        Change password
+                      </Link>
+                    </li>
+                    <li className="nav-item d-sm-none">
+                      <button type="button" className="nav-link site-navbar-logout" onClick={handleLogout}>
+                        Logout
+                      </button>
+                    </li>
                   </>
                 ) : null}
               </ul>
               <ul className="navbar-nav">
                 {loading ? null : user ? (
-                  <li className="nav-item dropdown">
+                  <li className="nav-item dropdown d-none d-sm-block">
                     <button
                       type="button"
                       className="nav-link profile-menu-toggle d-flex align-items-center justify-content-center"
@@ -109,7 +126,7 @@ export function Layout() {
                         <button
                           type="button"
                           className="dropdown-item"
-                          onClick={() => void logout().then(() => navigate('/login'))}
+                          onClick={handleLogout}
                         >
                           Logout
                         </button>

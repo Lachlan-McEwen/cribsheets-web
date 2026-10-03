@@ -69,6 +69,13 @@ body {
     display: none;
 }
 
+.site-navbar .site-navbar-logout {
+    border: none;
+    background: transparent;
+    width: 100%;
+    text-align: inherit;
+}
+
 /* Layout */
 .page-container {
     padding-top: 2rem;
