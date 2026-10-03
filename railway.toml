@@ -1,14 +1,12 @@
-# Railway: deploy from this repo root.
-# 1. Add a volume mounted at /data
-# 2. Set variable DATA_DIR=/data
-# 3. Deploy — UI + API on one service (PORT from Railway)
+# One service: built React UI + /api (same as `npm start` locally).
+# Mount a volume at /data and set DATA_DIR=/data (see README).
 
 [build]
-builder = "RAILPACK"
-buildCommand = "npm install && npm run build"
+# Ensure devDependencies (Vite, TypeScript) install despite NODE_ENV=production
+buildCommand = "npm ci --include=dev && npm run build"
 
 [deploy]
-startCommand = "npm --prefix api start"
+startCommand = "npm start"
 healthcheckPath = "/api/health"
 healthcheckTimeout = 120
 restartPolicyType = "ON_FAILURE"

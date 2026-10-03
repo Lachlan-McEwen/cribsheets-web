@@ -13,8 +13,9 @@ The .NET source lives beside this repo at `../CribSheets`. A local **junction** 
 
 ```powershell
 bun run setup:legacy   # one-time: legacy\CribSheets → ..\CribSheets
-bun install
+bun install   # or npm ci
 cd api && npm install && cd ..
+# E2E only: npm run test:e2e:install
 copy api\.env.example api\.env   # set ADMIN_* , optional DEV_USER_* , and Resend (RESEND_API_KEY, EMAIL_FROM)
 ```
 
@@ -71,7 +72,7 @@ One service serves the built React UI and `/api` (same as `npm start` locally). 
 
    After deploy, verify email: log in as admin and `POST /api/admin/email/test` (optional JSON `{ "to": "you@example.com" }`). `GET /api/health` reports `email.configured`.
 
-4. Deploy: connect the repo (Railpack reads `railway.toml`) or from this directory:
+4. Deploy: connect the repo (Railpack uses `package.json` build/start + `railway.toml` health check) or from this directory:
 
    ```powershell
    railway link    # or railway init --name cribsheets-web

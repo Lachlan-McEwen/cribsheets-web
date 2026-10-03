@@ -76,6 +76,7 @@ export function ProfilePage() {
     !signatureEditing && (signatureDraftPreview ?? serverSignatureSrc)
 
   function finishSignatureEdit() {
+    if (!user) return
     setSignatureEditing(false)
     if (signatureTouched && canvasRef.current) {
       setSignatureDraftPreview(canvasRef.current.toDataURL('image/png'))
@@ -88,6 +89,7 @@ export function ProfilePage() {
 
   async function onSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault()
+    if (!user) return
     const fd = new FormData(e.currentTarget)
     let signatureDataUrl: string | null = signatureDraftPreview
     if (!signatureDataUrl && signatureTouched && canvasRef.current) {

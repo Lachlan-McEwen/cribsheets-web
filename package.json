@@ -6,11 +6,12 @@
   "engines": {
     "node": ">=20"
   },
+  "packageManager": "npm@10.9.2",
   "scripts": {
     "dev:api": "npm --prefix api run dev",
     "dev": "concurrently -n api,ui -c magenta,cyan \"npm run dev:api\" \"vite\"",
     "dev:ui": "vite",
-    "build": "npm run build:ui && npm install --prefix api",
+    "build": "npm run build:ui && npm ci --prefix api",
     "build:ui": "tsc -b && vite build",
     "start": "npm --prefix api start",
     "seed:admin": "npm run seed:admin --prefix api",
@@ -28,8 +29,7 @@
     "test:api:integration": "npm run test:integration --prefix api",
     "test:e2e": "playwright test",
     "test:e2e:ui": "playwright test --ui",
-    "test:e2e:install": "playwright install chromium",
-    "postinstall": "node -e \"if (process.env.PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD === '1' || process.env.CI || process.env.RAILWAY_ENVIRONMENT) process.exit(0)\" || playwright install chromium"
+    "test:e2e:install": "playwright install chromium"
   },
   "dependencies": {
     "@sheetkit/node": "^0.5.1",
@@ -40,6 +40,10 @@
     "react-router-dom": "^7.18.4",
     "xlsx": "https://cdn.sheetjs.com/xlsx-0.20.3/xlsx-0.20.3.tgz",
     "xlsx-populate": "^1.21.0"
+  },
+  "optionalDependencies": {
+    "@rolldown/binding-linux-x64-gnu": "1.2.11",
+    "lightningcss-linux-x64-gnu": "1.33.0"
   },
   "devDependencies": {
     "@playwright/test": "^1.63.0",
