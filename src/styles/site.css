@@ -388,12 +388,21 @@ label {
     outline: none;
 }
 
+.section-panel {
+    padding-bottom: 0.25rem;
+}
+
+.section-clear-row {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 0.5rem;
+}
+
 .section-clear-button {
-    float: right;
-    clear: both;
+    flex-shrink: 0;
     width: 36px;
     height: 36px;
-    margin-top: 0.5rem;
+    padding: 0;
     border: 1px solid var(--cs-border);
     border-radius: 6px;
     background: var(--cs-surface);

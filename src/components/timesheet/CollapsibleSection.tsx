@@ -59,10 +59,14 @@ export function CollapsibleSection({ id, title, toggleClass, children, onClear }
         {title}
       </DisclosureHeader>
       <div id={id} className={`collapse crib${expanded ? ' show' : ''}`}>
-        {children}
-        <button type="button" className="section-clear-button" onClick={onClear}>
-          🗑
-        </button>
+        <div className="section-panel">
+          {children}
+          <div className="section-clear-row">
+            <button type="button" className="section-clear-button" onClick={onClear}>
+              🗑
+            </button>
+          </div>
+        </div>
       </div>
     </div>
   )
