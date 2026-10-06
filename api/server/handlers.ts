@@ -48,6 +48,7 @@ import {
 import { deliverEmail, emailConfigStatus } from './email.js'
 import { parseOptionalEmail } from './emailFormat.js'
 import { listRecentEmailLogs } from './emailLog.js'
+import { ResendEmailLogError, resendEmailFromLog } from './emailResend.js'
 import { notifyAdminsOfSupportRequest } from './supportNotify.js'
 import {
   createSupportRequest,
@@ -662,6 +663,29 @@ export async function tryHandleApi(
       )
       json(res, 200, { ok: true, id, to })
     } catch (err) {
+      const message = err instanceof Error ? err.message : String(err)
+      json(res, 502, { error: 'send_failed', message })
+    }
+    return true
+  }
+
+  const adminEmailLogResendMatch = /^\/api\/admin\/email\/logs\/(\d+)\/resend$/.exec(path)
+  if (adminEmailLogResendMatch && method === 'POST') {
+    const admin = requireAdmin(getUser, res)
+    if (!admin) return true
+    const logId = Number(adminEmailLogResendMatch[1])
+    if (!Number.isInteger(logId) || logId < 1) {
+      json(res, 400, { error: 'invalid_log_id' })
+      return true
+    }
+    try {
+      const { id } = await resendEmailFromLog(logId)
+      json(res, 200, { ok: true, id })
+    } catch (err) {
+      if (err instanceof ResendEmailLogError) {
+        json(res, 400, { error: err.code })
+        return true
+      }
       const message = err instanceof Error ? err.message : String(err)
       json(res, 502, { error: 'send_failed', message })
     }

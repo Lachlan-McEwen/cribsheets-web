@@ -2,12 +2,15 @@ import { useCallback, useEffect, useState } from 'react'
 import { AdminNav } from '../../components/admin/AdminNav.tsx'
 import { PageAlert } from '../../feedback/PageAlert.tsx'
 import {
+  adminErrorMessage,
   getAdminLogs,
+  resendAdminEmailLog,
   type AppErrorLogEntry,
   type EmailLogEntry,
   type AdminEmailConfig,
   type SchemaMigrationResult,
 } from '../../lib/api.ts'
+import { useToast } from '../../feedback/ToastContext.tsx'
 
 function migrationBadgeClass(status: string): string {
   if (status === 'Applied' || status === 'Ready' || status === 'AlreadyApplied') return 'bg-success'
@@ -41,6 +44,7 @@ function kindLabel(kind: string): string {
 }
 
 export function AdminLogsPage() {
+  const toast = useToast()
   const [loggingAvailable, setLoggingAvailable] = useState(false)
   const [migrationRunUtc, setMigrationRunUtc] = useState<number | null>(null)
   const [migrationResults, setMigrationResults] = useState<SchemaMigrationResult[]>([])
@@ -50,6 +54,7 @@ export function AdminLogsPage() {
   const [e2eHooks, setE2eHooks] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
+  const [resendingLogId, setResendingLogId] = useState<number | null>(null)
 
   const load = useCallback(() => {
     setLoading(true)
@@ -71,6 +76,19 @@ export function AdminLogsPage() {
   useEffect(() => {
     load()
   }, [load])
+
+  async function onResendEmail(logId: number) {
+    setResendingLogId(logId)
+    try {
+      await resendAdminEmailLog(logId)
+      toast.success('Email queued again.')
+      load()
+    } catch (e) {
+      toast.error(adminErrorMessage(e instanceof Error ? e.message : 'send_failed'))
+    } finally {
+      setResendingLogId(null)
+    }
+  }
 
   const hasMigrationProblems = migrationResults.some((r) => r.status === 'Failed' || r.status === 'Missing')
 
@@ -132,6 +150,7 @@ export function AdminLogsPage() {
                     <th>Subject</th>
                     <th>Status</th>
                     <th>Provider id</th>
+                    <th aria-label="Actions" />
                   </tr>
                 </thead>
                 <tbody>
@@ -161,6 +180,16 @@ export function AdminLogsPage() {
                         <span className={`badge ${emailStatusBadgeClass(log.status)}`}>{log.status}</span>
                       </td>
                       <td className="font-monospace">{log.providerMessageId ?? '—'}</td>
+                      <td className="text-end">
+                        <button
+                          type="button"
+                          className="btn btn-outline-primary btn-sm"
+                          disabled={resendingLogId === log.id || loading}
+                          onClick={() => void onResendEmail(log.id)}
+                        >
+                          {resendingLogId === log.id ? 'Sending…' : 'Resend'}
+                        </button>
+                      </td>
                     </tr>
                   ))}
                 </tbody>

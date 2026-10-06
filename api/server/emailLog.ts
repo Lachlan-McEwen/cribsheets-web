@@ -99,6 +99,18 @@ function rowToEntry(row: {
   }
 }
 
+export function getEmailLogById(id: number): EmailLogEntry | null {
+  const row = getDb()
+    .prepare(
+      `SELECT id, created_utc, kind, to_email, subject, status, provider_message_id,
+              text_body, html_body, error, user_id
+       FROM email_logs
+       WHERE id = ?`,
+    )
+    .get(id) as Parameters<typeof rowToEntry>[0] | undefined
+  return row ? rowToEntry(row) : null
+}
+
 export function listRecentEmailLogs(limit = 50): EmailLogEntry[] {
   const capped = Math.min(Math.max(limit, 1), 200)
   const rows = getDb()

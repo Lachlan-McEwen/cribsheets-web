@@ -371,6 +371,12 @@ export function getAdminLogs() {
   }>('/api/admin/logs')
 }
 
+export function resendAdminEmailLog(logId: number) {
+  return apiFetch<{ ok: boolean; id: string }>(`/api/admin/email/logs/${logId}/resend`, {
+    method: 'POST',
+  })
+}
+
 export function adminErrorMessage(code: string): string {
   switch (code) {
     case 'cannot_remove_own_admin':
@@ -379,6 +385,14 @@ export function adminErrorMessage(code: string): string {
       return 'Cannot remove or delete the last admin account.'
     case 'cannot_delete_self':
       return 'You cannot delete your own account.'
+    case 'already_verified':
+      return 'That user has already verified their email.'
+    case 'user_not_found':
+      return 'The user for this email no longer exists.'
+    case 'not_found':
+      return 'Email log entry not found.'
+    case 'send_failed':
+      return 'Failed to send email.'
     default:
       return code
   }
