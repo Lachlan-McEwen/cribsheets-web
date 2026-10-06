@@ -6,11 +6,22 @@ import { fileURLToPath } from 'node:url'
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
 const pkg = JSON.parse(fs.readFileSync(path.join(root, 'package.json'), 'utf8'))
 
-let commit = null
-try {
-  commit = execSync('git rev-parse --short HEAD', { cwd: root, encoding: 'utf8' }).trim()
-} catch {
-  // Not a git checkout (e.g. exported tarball)
+function shortSha(raw) {
+  const trimmed = raw?.trim()
+  if (!trimmed) return null
+  return trimmed.slice(0, 7)
+}
+
+let commit =
+  shortSha(process.env.RAILWAY_GIT_COMMIT_SHA) ??
+  shortSha(process.env.GITHUB_SHA) ??
+  null
+if (!commit) {
+  try {
+    commit = execSync('git rev-parse --short HEAD', { cwd: root, encoding: 'utf8' }).trim() || null
+  } catch {
+    // Not a git checkout (e.g. exported tarball)
+  }
 }
 
 const info = {

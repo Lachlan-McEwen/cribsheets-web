@@ -2,8 +2,10 @@
 # Mount a volume at /data and set DATA_DIR=/data (see README).
 
 [build]
-# Ensure devDependencies (Vite, TypeScript) install despite NODE_ENV=production
-buildCommand = "npm ci --include=dev && npm run build"
+# Railpack already runs `npm install` with devDependencies (NPM_CONFIG_PRODUCTION=false).
+# Do not run `npm ci` here — it races with the cached node_modules mount and fails with
+# EBUSY on node_modules/.vite, leaving production stuck on the previous deploy.
+buildCommand = "npm run build"
 
 [deploy]
 startCommand = "npm start"

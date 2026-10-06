@@ -5,6 +5,7 @@ import {
   adminErrorMessage,
   getAdminLogs,
   resendAdminEmailLog,
+  sendAdminTestEmail,
   type AppErrorLogEntry,
   type EmailLogEntry,
   type AdminEmailConfig,
@@ -55,6 +56,8 @@ export function AdminLogsPage() {
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
   const [resendingLogId, setResendingLogId] = useState<number | null>(null)
+  const [testEmailTo, setTestEmailTo] = useState('')
+  const [sendingTestEmail, setSendingTestEmail] = useState(false)
 
   const load = useCallback(() => {
     setLoading(true)
@@ -76,6 +79,28 @@ export function AdminLogsPage() {
   useEffect(() => {
     load()
   }, [load])
+
+  async function onSendTestEmail() {
+    const to = testEmailTo.trim()
+    if (!to.includes('@')) {
+      toast.error('Enter a valid email address.')
+      return
+    }
+    setSendingTestEmail(true)
+    try {
+      const r = await sendAdminTestEmail(to)
+      toast.success(
+        emailConfig?.sendMode === 'log'
+          ? `Test email logged for ${r.to} (send mode is log only).`
+          : `Test email sent to ${r.to}.`,
+      )
+      load()
+    } catch (e) {
+      toast.error(adminErrorMessage(e instanceof Error ? e.message : 'send_failed'))
+    } finally {
+      setSendingTestEmail(false)
+    }
+  }
 
   async function onResendEmail(logId: number) {
     setResendingLogId(logId)
@@ -135,6 +160,37 @@ export function AdminLogsPage() {
                 )}
               </dd>
             </dl>
+          </div>
+          <div className="px-3 pb-3 border-top pt-3">
+            <h3 className="h6">Send test email</h3>
+            <p className="small text-muted mb-2">
+              Sends &ldquo;Crib Sheets — test email&rdquo; to any address. The attempt appears in the log below.
+            </p>
+            <div className="d-flex flex-wrap gap-2 align-items-center">
+              <input
+                type="email"
+                className="form-control form-control-sm"
+                style={{ maxWidth: '22rem' }}
+                placeholder="you@example.com"
+                value={testEmailTo}
+                onChange={(e) => setTestEmailTo(e.target.value)}
+                disabled={!emailConfig.configured || sendingTestEmail || loading}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') void onSendTestEmail()
+                }}
+              />
+              <button
+                type="button"
+                className="btn btn-primary btn-sm"
+                disabled={!emailConfig.configured || sendingTestEmail || loading || !testEmailTo.trim()}
+                onClick={() => void onSendTestEmail()}
+              >
+                {sendingTestEmail ? 'Sending…' : 'Send test'}
+              </button>
+            </div>
+            {!emailConfig.configured ? (
+              <p className="small text-muted mb-0 mt-2">Configure the email provider before sending.</p>
+            ) : null}
           </div>
           <h3 className="h6 px-3 border-top pt-3">Recent outbound email (last 100)</h3>
           {emailLogs.length === 0 ? (

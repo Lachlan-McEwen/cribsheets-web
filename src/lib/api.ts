@@ -377,6 +377,13 @@ export function resendAdminEmailLog(logId: number) {
   })
 }
 
+export function sendAdminTestEmail(to: string) {
+  return apiFetch<{ ok: boolean; id: string; to: string }>('/api/admin/email/test', {
+    method: 'POST',
+    body: JSON.stringify({ to }),
+  })
+}
+
 export function adminErrorMessage(code: string): string {
   switch (code) {
     case 'cannot_remove_own_admin':
@@ -393,6 +400,10 @@ export function adminErrorMessage(code: string): string {
       return 'Email log entry not found.'
     case 'send_failed':
       return 'Failed to send email.'
+    case 'email_not_configured':
+      return 'Email provider is not configured.'
+    case 'invalid_to':
+      return 'Enter a valid email address.'
     default:
       return code
   }
