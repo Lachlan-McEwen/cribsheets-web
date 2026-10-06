@@ -22,14 +22,8 @@ jobs:
           node-version: '20'
           cache: npm
 
-      - name: Install (match Railway Railpack dev deps)
-        run: npm ci --include=dev
-
-      - name: Lint
-        run: npm run lint
-
-      - name: Build (same command as railway.toml)
-        run: npm run build
+      - name: Install + build (matches railway.toml)
+        run: npm run build:ci
         env:
           RAILWAY_GIT_COMMIT_SHA: ${{ github.sha }}
           GITHUB_SHA: ${{ github.sha }}
