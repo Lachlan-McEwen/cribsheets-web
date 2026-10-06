@@ -1,44 +1,27 @@
 # Deploying to Railway
 
-Production: **https://new.cribsheets.com.au** — one Railway service (`cribsheets-web`) built from **`main`**.
+Production: **https://new.cribsheets.com.au** — service **`cribsheets-web`**, branch **`main`**.
 
-## How deploys are triggered
+## Deploy
 
-1. **GitHub → Railway (primary)** — Service source is `Lachlan-McEwen/cribsheets-web` branch **`main`**. Each push to `main` should start a Railway build using `railway.toml` (`npm run build`, then `npm start`).
+Push to **`main`**. Railway builds with `railway.toml` (`npm run build`, then `npm start`).
 
-2. **GitHub Actions (CI + smoke)** — Workflow [`.github/workflows/ci.yml`](../.github/workflows/ci.yml):
-   - **Production build** on every push/PR to `main` (same install + build as Railway).
-   - **Production smoke** on push to `main`: polls `/api/health` until `{ "ok": true, "staticUi": true }`.
+GitHub Actions runs the same production build on push/PR so broken builds show up in CI before you rely on Railway.
 
-3. **GitHub Actions deploy (optional backup)** — If repo secret **`RAILWAY_TOKEN`** is set (Railway project → **Settings → Tokens** → production-scoped project token), the workflow also runs `railway up` for that commit. If the secret is missing, the step is skipped and only the GitHub source trigger runs.
+## Railway setup
 
-## One-time setup checklist
+- Volume at **`/data`**, variable **`DATA_DIR=/data`**
+- Source: **`Lachlan-McEwen/cribsheets-web`**, branch **`main`**
+- Do **not** add `npm ci` to `railway.toml` `buildCommand` (causes flaky **`EBUSY`** on `node_modules/.vite`)
 
-| Step | Where |
-|------|--------|
-| Volume at `/data`, `DATA_DIR=/data` | Railway service |
-| Email: `RESEND_API_KEY`, `EMAIL_FROM` | Railway variables |
-| Source: repo + **`main`** branch | `railway service source connect --repo Lachlan-McEwen/cribsheets-web --branch main --service cribsheets-web` |
-| (Optional) `RAILWAY_TOKEN` | GitHub repo → Settings → Secrets |
-| (Recommended) Require **CI / Production build** before merging to `main` | GitHub branch protection |
+## Verify
 
-## Build failures (historical)
+Admin nav deploy label should match the commit Railway built. `GET /api/health` → `"ok": true`, `"staticUi": true`.
 
-Do **not** put `npm ci` in `railway.toml` `buildCommand`. Railpack already runs `npm install`; a second `npm ci` often fails with **`EBUSY`** on `node_modules/.vite` and leaves production on the last successful deploy.
+## Manual redeploy
 
-## Manual deploy
+If Railway did not pick up a commit after a push, use the Railway dashboard **Redeploy** on the latest commit, or:
 
 ```powershell
 railway redeploy --from-source -y --service cribsheets-web
 ```
-
-Or from a clean checkout at the commit you want:
-
-```powershell
-railway up -y -c --service cribsheets-web --environment production
-```
-
-## Verify after deploy
-
-- Admin nav: deploy label should match a recent commit on `main`.
-- `GET https://new.cribsheets.com.au/api/health` → `"ok": true`, `"staticUi": true`.

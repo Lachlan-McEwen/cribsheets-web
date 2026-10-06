@@ -79,7 +79,7 @@ One service serves the built React UI and `/api` (same as `npm start` locally). 
    railway up
    ```
 
-   **CI:** GitHub Actions runs the same production build on every push/PR to `main`, and smoke-tests production after pushes to `main`.
+   **CI:** GitHub Actions runs the same production build on every push/PR to `main`.
 
 Health check: `GET /api/health` (expects `{ "ok": true, "staticUi": true }`).
 
