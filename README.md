@@ -72,12 +72,14 @@ One service serves the built React UI and `/api` (same as `npm start` locally). 
 
    After deploy, verify email: log in as admin and `POST /api/admin/email/test` (optional JSON `{ "to": "you@example.com" }`). `GET /api/health` reports `email.configured`.
 
-4. Deploy: connect the repo (Railpack uses `package.json` build/start + `railway.toml` health check) or from this directory:
+4. Deploy: push to **`main`** (GitHub → Railway) or deploy manually. See **[docs/deploy.md](docs/deploy.md)** for CI, smoke checks, tokens, and troubleshooting.
 
    ```powershell
    railway link    # or railway init --name cribsheets-web
    railway up
    ```
+
+   **CI:** GitHub Actions runs the same production build on every push/PR to `main`, and smoke-tests production after pushes to `main`.
 
 Health check: `GET /api/health` (expects `{ "ok": true, "staticUi": true }`).
 

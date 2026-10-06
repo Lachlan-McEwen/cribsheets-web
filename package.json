@@ -12,6 +12,7 @@
     "dev": "concurrently -n api,ui -c magenta,cyan \"npm run dev:api\" \"vite\"",
     "dev:ui": "vite",
     "build": "npm run build:ui && npm ci --prefix api",
+    "build:ci": "npm ci --include=dev && npm run build",
     "build:ui": "node scripts/write-build-info.mjs && tsc -b && vite build",
     "start": "npm --prefix api start",
     "seed:admin": "npm run seed:admin --prefix api",
