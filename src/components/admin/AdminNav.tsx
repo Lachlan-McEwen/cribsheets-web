@@ -3,9 +3,12 @@ import { NavLink } from 'react-router-dom'
 import { getAdminDeployInfo, type AdminDeployInfo } from '../../lib/api.ts'
 
 function formatDeployLabel(info: AdminDeployInfo): string {
-  const parts = [`v${info.version}`]
+  const parts: string[] = []
+  if (info.builtAt) {
+    parts.push(new Date(info.builtAt).toLocaleString('en-AU'))
+  }
   if (info.commit) parts.push(info.commit)
-  return parts.join(' · ')
+  return parts.join(' · ') || 'unknown'
 }
 
 export function AdminNav() {
@@ -42,7 +45,10 @@ export function AdminNav() {
         </li>
       </ul>
       {deploy ? (
-        <p className="text-muted small mb-0 mt-2" title={deploy.builtAt ? `Built ${deploy.builtAt}` : undefined}>
+        <p
+          className="text-muted small mb-0 mt-2"
+          title={deploy.builtAt ?? (deploy.version ? `v${deploy.version}` : undefined)}
+        >
           Deployed {formatDeployLabel(deploy)}
         </p>
       ) : null}

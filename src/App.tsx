@@ -2,11 +2,15 @@ import { Navigate, Route, Routes } from 'react-router-dom'
 import { RequireAdmin } from './auth/RequireAdmin'
 import { RequireAuth } from './auth/RequireAuth'
 import { Layout } from './components/Layout'
-import { AdminFortnightReportPage } from './pages/admin/AdminFortnightReportPage'
-import { AdminLogsPage } from './pages/admin/AdminLogsPage'
-import { AdminUserDetailPage } from './pages/admin/AdminUserDetailPage'
-import { AdminUsersPage } from './pages/admin/AdminUsersPage'
-import { AdminViewTimesheetPage } from './pages/admin/AdminViewTimesheetPage'
+import { AdminRouteShell } from './routes/AdminRouteShell'
+import {
+  AdminFortnightReportPage,
+  AdminLogsPage,
+  AdminSupportPage,
+  AdminUserDetailPage,
+  AdminUsersPage,
+  AdminViewTimesheetPage,
+} from './routes/lazyAdminPages'
 import { CheckEmailPage } from './pages/CheckEmailPage'
 import { ForgotPasswordPage } from './pages/ForgotPasswordPage'
 import { LoginPage } from './pages/LoginPage'
@@ -18,7 +22,6 @@ import { PrivacyPage } from './pages/PrivacyPage'
 import { RegisterPage } from './pages/RegisterPage'
 import { SupportPage } from './pages/SupportPage'
 import { TimesheetPage } from './pages/TimesheetPage'
-import { AdminSupportPage } from './pages/admin/AdminSupportPage'
 
 export default function App() {
   return (
@@ -37,12 +40,17 @@ export default function App() {
           <Route path="change-password" element={<ChangePasswordPage />} />
           <Route path="help" element={<SupportPage />} />
           <Route path="admin" element={<RequireAdmin />}>
-            <Route index element={<AdminUsersPage />} />
-            <Route path="timesheets" element={<AdminFortnightReportPage />} />
-            <Route path="support" element={<AdminSupportPage />} />
-            <Route path="logs" element={<AdminLogsPage />} />
-            <Route path="users/:userId" element={<AdminUserDetailPage />} />
-            <Route path="users/:userId/timesheets/:fortnightEnding" element={<AdminViewTimesheetPage />} />
+            <Route element={<AdminRouteShell />}>
+              <Route index element={<AdminUsersPage />} />
+              <Route path="timesheets" element={<AdminFortnightReportPage />} />
+              <Route path="support" element={<AdminSupportPage />} />
+              <Route path="logs" element={<AdminLogsPage />} />
+              <Route path="users/:userId" element={<AdminUserDetailPage />} />
+              <Route
+                path="users/:userId/timesheets/:fortnightEnding"
+                element={<AdminViewTimesheetPage />}
+              />
+            </Route>
           </Route>
         </Route>
         <Route path="*" element={<Navigate to="/" replace />} />
