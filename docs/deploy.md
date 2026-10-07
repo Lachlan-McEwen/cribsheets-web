@@ -35,7 +35,7 @@ Copy other app variables from production as needed (`ADMIN_*`, `RESEND_API_KEY`,
 
 ## DNS (Cloudflare)
 
-Custom domain on the staging service: **`staging.cribsheets.com.au`**. Add the CNAME Railway shows in **Domains** (target is usually `{something}.up.railway.app`). Proxy (orange cloud) is fine if production uses the same pattern.
+Custom domain on the staging service: **`staging.cribsheets.com.au`**. Add the CNAME Railway shows in **Domains** (target is usually `{something}.up.railway.app`) and Railway’s **`_railway-verify.staging`** TXT record. Use **DNS only** (grey cloud), same as **`new.cribsheets.com.au`** — orange-cloud proxy causes redirect loops with Railway.
 
 ## Verify
 
