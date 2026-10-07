@@ -31,9 +31,19 @@ export {
 } from './signature.ts'
 export {
   allTrackedCellRefs,
+  CRIB_COLUMNS,
+  dayCell,
+  dayRow,
+  DAY_ROW_COLS,
+  FIRST_CRIB_ROW,
+  FIRST_DAY_ROW,
+  FORTNIGHT_DAY_COUNT,
   formatCellValue,
+  HEADER_CELLS,
+  SECOND_CRIB_ROW,
   type CellSnapshot,
   type CellValue,
+  type DayRowCol,
 } from './cells.ts'
 export {
   assertTemplateExists,

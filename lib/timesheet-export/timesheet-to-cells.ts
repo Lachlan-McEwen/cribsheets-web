@@ -1,3 +1,12 @@
+import {
+  cribColumn,
+  dayCell,
+  dayRow,
+  FORTNIGHT_DAY_COUNT,
+  FIRST_CRIB_ROW,
+  HEADER_CELLS,
+  SECOND_CRIB_ROW,
+} from './cells.ts'
 import type { CellSnapshot } from './types.ts'
 import type { CribPenalty, TimeSheetDay, TimesheetDocument } from './legacy-types.ts'
 import {
@@ -13,10 +22,6 @@ import {
   splitEmployeeName,
   timeSpanFromParts,
 } from './legacy-format.ts'
-
-const CRIB_COLUMNS = ['O', 'Q', 'S', 'T', 'U', 'V', 'X', 'Z', 'AB', 'AC', 'AE', 'AG', 'AI', 'AJ'] as const
-const FIRST_CRIB_ROW = 38
-const SECOND_CRIB_ROW = 46
 
 export type CellFontStyle = { fontFamily: string; fontSize: number }
 
@@ -98,9 +103,9 @@ function writeCountryDay(cells: CellSnapshot, row: number, day: TimeSheetDay): v
 
 function writeEmploymentType(cells: CellSnapshot, isCountryEmployee: boolean): void {
   if (isCountryEmployee) {
-    setCell(cells, 'M8', EMPLOYMENT_TYPE_TICK)
+    setCell(cells, HEADER_CELLS.countryEmployment, EMPLOYMENT_TYPE_TICK)
   } else {
-    setCell(cells, 'M9', EMPLOYMENT_TYPE_TICK)
+    setCell(cells, HEADER_CELLS.metroEmployment, EMPLOYMENT_TYPE_TICK)
   }
 }
 
@@ -111,53 +116,53 @@ export function timesheetDocumentToCellWrites(doc: TimesheetDocument): Timesheet
 
   const fortnightEnding = parseLegacyDate(doc.fortnightEnding)
   const fortnightStr = formatDateDdMmYyyy(fortnightEnding)
-  cells.AA8 = fortnightStr
+  cells[HEADER_CELLS.fortnightEnding] = fortnightStr
 
   const { surname, firstName } = splitEmployeeName(doc.user.name)
-  setCell(cells, 'F5', surname)
-  setCell(cells, 'S5', firstName)
-  setCell(cells, 'AA5', doc.user.employeeNumber)
-  setCell(cells, 'D8', doc.user.unitStation)
+  setCell(cells, HEADER_CELLS.surname, surname)
+  setCell(cells, HEADER_CELLS.firstName, firstName)
+  setCell(cells, HEADER_CELLS.employeeNumber, doc.user.employeeNumber)
+  setCell(cells, HEADER_CELLS.unitStation, doc.user.unitStation)
   writeEmploymentType(cells, doc.user.isCountryEmployee ?? false)
 
   let shiftChanges = 0
 
-  for (let i = 0; i < 14; i++) {
+  for (let i = 0; i < FORTNIGHT_DAY_COUNT; i++) {
     const day = doc.days[i]
     if (!day) continue
 
-    const row = i + 20
-    setCell(cells, `B${row}`, formatDateDdMmYyyy(parseLegacyDate(day.date)))
+    const row = dayRow(i)
+    setCell(cells, dayCell(i, 'B'), formatDateDdMmYyyy(parseLegacyDate(day.date)))
 
-    if (day.start) setCell(cells, `C${row}`, formatTimeHhMm(parseDateTime(day.start)))
-    if (day.end) setCell(cells, `D${row}`, formatTimeHhMm(parseDateTime(day.end)))
+    if (day.start) setCell(cells, dayCell(i, 'C'), formatTimeHhMm(parseDateTime(day.start)))
+    if (day.end) setCell(cells, dayCell(i, 'D'), formatTimeHhMm(parseDateTime(day.end)))
 
     const meals = timeSpanFromParts(day.mealsHours, day.mealsMinutes)
-    if (meals) setCell(cells, `E${row}`, formatQHours(meals.hours, meals.minutes))
+    if (meals) setCell(cells, dayCell(i, 'E'), formatQHours(meals.hours, meals.minutes))
 
     const rostered = timeSpanFromParts(day.rosteredHours, day.rosteredMinutes)
-    if (rostered) setCell(cells, `F${row}`, formatQHours(rostered.hours, rostered.minutes))
+    if (rostered) setCell(cells, dayCell(i, 'F'), formatQHours(rostered.hours, rostered.minutes))
 
     const overtime = timeSpanFromParts(day.overtimeHours, day.overtimeMinutes)
-    if (overtime) setCell(cells, `H${row}`, formatQHours(overtime.hours, overtime.minutes))
+    if (overtime) setCell(cells, dayCell(i, 'H'), formatQHours(overtime.hours, overtime.minutes))
 
     const shiftAbbr = shiftCodeAbbreviation(day.shiftCode)
-    if (shiftAbbr) setCell(cells, `M${row}`, shiftAbbr)
+    if (shiftAbbr) setCell(cells, dayCell(i, 'M'), shiftAbbr)
 
     const leaveAbbr = leaveTypeAbbreviation(day.leaveType)
-    if (leaveAbbr) setCell(cells, `N${row}`, leaveAbbr)
+    if (leaveAbbr) setCell(cells, dayCell(i, 'N'), leaveAbbr)
 
     if (day.sickCertificate && day.sickCertificate !== 'None') {
-      setCell(cells, `P${row}`, day.sickCertificate)
+      setCell(cells, dayCell(i, 'P'), day.sickCertificate)
     }
 
     const leave = timeSpanFromParts(day.leaveHours, day.leaveMinutes)
-    if (leave) setCell(cells, `Q${row}`, formatQHours(leave.hours, leave.minutes))
+    if (leave) setCell(cells, dayCell(i, 'Q'), formatQHours(leave.hours, leave.minutes))
 
-    if (day.additionalInformation != null) cells[`S${row}`] = day.additionalInformation
-    if (day.unitStation != null) cells[`W${row}`] = day.unitStation
+    if (day.additionalInformation != null) cells[dayCell(i, 'S')] = day.additionalInformation
+    if (day.unitStation != null) cells[dayCell(i, 'W')] = day.unitStation
 
-    const cribCol = CRIB_COLUMNS[i]
+    const cribCol = cribColumn(i)
     addCrib(day.firstCribPenalty, cells, cellFonts, cribCol, FIRST_CRIB_ROW)
     addCrib(day.secondCribPenalty, cells, cellFonts, cribCol, SECOND_CRIB_ROW)
 
@@ -180,7 +185,7 @@ export function timesheetDocumentToCellWrites(doc: TimesheetDocument): Timesheet
   }
 
   if (doc.user.isCountryEmployee && doc.excessOnCallHoursClaimed?.trim()) {
-    cells.BB35 = doc.excessOnCallHoursClaimed.trim()
+    cells[HEADER_CELLS.excessOnCallHours] = doc.excessOnCallHoursClaimed.trim()
   }
 
   return { cells, cellFonts }

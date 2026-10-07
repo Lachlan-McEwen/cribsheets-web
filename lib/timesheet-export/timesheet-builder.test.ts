@@ -2,6 +2,7 @@ import fs from 'node:fs'
 import os from 'node:os'
 import path from 'node:path'
 import { afterAll, beforeAll, describe, expect, test } from 'bun:test'
+import { HEADER_CELLS } from './cells.ts'
 import { normalizeCellDisplay, compareTrackedCells } from './compare-workbooks.ts'
 import { generateTimesheetFromDocument } from './generate-from-document.ts'
 import { generateTimesheetWithDotNet } from './dotnet-generate.ts'
@@ -36,7 +37,7 @@ describe('TimesheetDocument → cells (legacy Models shape)', () => {
 
     const mismatches: string[] = []
     for (const [address, prodValue] of Object.entries(prodCells!)) {
-      if (address === 'AD1' || address === 'F5') continue
+      if (address === HEADER_CELLS.templateVersion || address === HEADER_CELLS.surname) continue
       if (!(address in cells)) continue
       const built = normalizeCellDisplay(String(cells[address] ?? ''))
       const prod = normalizeCellDisplay(prodValue ?? null)

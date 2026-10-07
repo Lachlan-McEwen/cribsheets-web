@@ -1,6 +1,7 @@
 import fs from 'node:fs'
 import path from 'node:path'
 import XlsxPopulate from 'xlsx-populate'
+import { HEADER_CELLS } from './cells.ts'
 import type { CellFontStyle, CellSnapshot } from './types.ts'
 import { dataSheetName } from './templates.ts'
 
@@ -28,8 +29,9 @@ export async function fillWorkbookFromSnapshot(
   }
 
   // Legacy sets AA8 on Worksheets.First() as well as the data sheet.
-  if (cells.AA8 !== undefined && cells.AA8 !== null) {
-    workbook.sheet(0).cell('AA8').value(normalizeCellValue(cells.AA8))
+  const fortnightCell = HEADER_CELLS.fortnightEnding
+  if (cells[fortnightCell] !== undefined && cells[fortnightCell] !== null) {
+    workbook.sheet(0).cell(fortnightCell).value(normalizeCellValue(cells[fortnightCell]))
   }
 
   for (const [address, font] of Object.entries(cellFonts)) {

@@ -2,6 +2,7 @@ import fs from 'node:fs'
 import os from 'node:os'
 import path from 'node:path'
 import { expect, type Page } from '@playwright/test'
+import { dayCell, HEADER_CELLS } from '../../lib/timesheet-export/cells.ts'
 import { extractTrackedCellsFromWorkbook } from '../../lib/timesheet-export/extract-cells.ts'
 import { getCurrentFortnightEnding, toFortnightParam } from '../../src/lib/fortnight.ts'
 import { createTimesheet } from '../../src/lib/timesheetModel.ts'
@@ -93,11 +94,12 @@ export async function downloadTimesheetExportViaApi(page: Page, fortnightEnding:
 export async function assertExportHasWorkedDayCells(
   filePath: string,
   opts: { start: string; end: string; employeeNumber: string; unitStation: string; surname: string },
+  dayIndex = 0,
 ) {
   const cells = await extractTrackedCellsFromWorkbook(filePath, false)
-  expect(cells.C20).toBe(opts.start)
-  expect(cells.D20).toBe(opts.end)
-  expect(cells.AA5).toBe(opts.employeeNumber)
-  expect(cells.D8).toBe(opts.unitStation)
-  expect(cells.F5).toBe(opts.surname)
+  expect(cells[dayCell(dayIndex, 'C')]).toBe(opts.start)
+  expect(cells[dayCell(dayIndex, 'D')]).toBe(opts.end)
+  expect(cells[HEADER_CELLS.employeeNumber]).toBe(opts.employeeNumber)
+  expect(cells[HEADER_CELLS.unitStation]).toBe(opts.unitStation)
+  expect(cells[HEADER_CELLS.surname]).toBe(opts.surname)
 }
